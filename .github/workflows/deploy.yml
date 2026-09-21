@@ -1,0 +1,66 @@
+# main 브랜치에 push 하면 자동으로 빌드하고 GitHub Pages 에 배포한다.
+#
+# 처음 한 번은 저장소 Settings → Pages 에서
+# Source 를 "GitHub Actions" 로 바꿔야 동작한다.
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Actions 탭에서 손으로도 실행할 수 있게 한다
+  workflow_dispatch:
+
+# Pages 배포에 필요한 권한
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 배포가 겹치면 최신 것만 남긴다. 진행 중인 배포는 끊지 않는다.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  # 1) 테스트와 빌드 — 여기서 실패하면 배포로 넘어가지 않는다
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node 설치
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 계산 로직 테스트
+        run: npm test
+
+      - name: 프로덕션 빌드
+        run: npm run build
+
+      - name: Pages 설정 확인
+        uses: actions/configure-pages@v5
+
+      - name: 빌드 결과 업로드
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  # 2) 배포
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: GitHub Pages 에 배포
+        id: deployment
+        uses: actions/deploy-pages@v4
