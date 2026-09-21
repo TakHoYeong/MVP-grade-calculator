@@ -2,6 +2,11 @@
 #
 # 처음 한 번은 저장소 Settings → Pages 에서
 # Source 를 "GitHub Actions" 로 바꿔야 동작한다.
+#
+# 보안: 외부 액션은 태그(@v4) 대신 커밋 SHA 로 고정한다.
+# 태그는 나중에 다른 커밋을 가리키도록 바뀔 수 있어(공급망 공격 위험),
+# SHA 로 못 박으면 "지금 검증한 그 코드"만 실행된다.
+# 뒤의 주석(# v4 등)은 사람이 읽기 위한 것이고, Dependabot 이 SHA 를 최신으로 갱신해 준다.
 
 name: Deploy to GitHub Pages
 
@@ -11,7 +16,7 @@ on:
   # Actions 탭에서 손으로도 실행할 수 있게 한다
   workflow_dispatch:
 
-# Pages 배포에 필요한 권한
+# Pages 배포에 필요한 권한 (최소 권한 원칙)
 permissions:
   contents: read
   pages: write
@@ -28,16 +33,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 저장소 체크아웃
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # 빌드에는 저장소에 되쓸 권한이 필요 없다.
+          # 토큰을 로컬 git 설정에 남기지 않아 유출 위험을 줄인다.
+          persist-credentials: false
 
       - name: Node 설치
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
 
       - name: 의존성 설치
         run: npm ci
+
+      - name: 의존성 취약점 검사
+        # high/critical 취약점이 있으면 배포를 막는다.
+        # 너무 자주 걸려 불편하면 --audit-level=critical 로 올리거나
+        # 끝에 '|| true' 를 붙여 경고만 남기도록 완화할 수 있다.
+        run: npm audit --audit-level=high
 
       - name: 계산 로직 테스트
         run: npm test
@@ -46,10 +61,10 @@ jobs:
         run: npm run build
 
       - name: Pages 설정 확인
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
 
       - name: 빌드 결과 업로드
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
           path: ./dist
 
@@ -63,4 +78,4 @@ jobs:
     steps:
       - name: GitHub Pages 에 배포
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

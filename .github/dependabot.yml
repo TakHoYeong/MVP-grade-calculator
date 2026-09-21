@@ -1,0 +1,24 @@
+# Dependabot: 의존성에 알려진 취약점/업데이트가 생기면 자동으로 PR 을 올린다.
+# GitHub 저장소에 이 파일만 있으면 켜진다(별도 설정 불필요).
+version: 2
+updates:
+  # npm 패키지(react, vite 등)
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: weekly
+    # 사소한 업데이트가 PR 을 도배하지 않도록 동시에 열리는 PR 수를 제한한다.
+    open-pull-requests-limit: 5
+    groups:
+      # 자잘한 patch/minor 업데이트는 하나의 PR 로 묶는다.
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # GitHub Actions 자체(워크플로에서 쓰는 액션들). SHA 로 고정해 둔 것도 최신으로 갱신해 준다.
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
