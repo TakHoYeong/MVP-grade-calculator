@@ -8,12 +8,10 @@ interface Props {
   result: CalcResult;
   /** 누적 0 기준 = 계속 유지할 때의 비용 */
   maintenance: CalcResult;
-  /** 메이플포인트 아이템을 팔아 얻는 현금 */
-  mpCashBack: number;
 }
 
 /** 스크롤 중에도 화면에 남는 결과 요약 */
-export function ResultBar({ grade, result, maintenance, mpCashBack }: Props) {
+export function ResultBar({ grade, result, maintenance }: Props) {
   return (
     <div className="result-bar">
       <div className="result-top">
@@ -42,12 +40,6 @@ export function ResultBar({ grade, result, maintenance, mpCashBack }: Props) {
         </div>
       </div>
 
-      {mpCashBack > 0 && (
-        <div className="mp-line">
-          메이플포인트 아이템 판매 <b>+{won(mpCashBack)}</b> 반영 시 최종{' '}
-          <b>{won(result.cost - mpCashBack)}</b>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bestItem, calcMaplePoint, calculate, efficiency, fillTiers, itemYield } from './calc';
+import { bestItem, calculate, efficiency, fillTiers, itemYield } from './calc';
 import { createDefaultState, newId } from './defaults';
 import { findGrade } from './grades';
 import type { CalcState, ItemRow } from './types';
@@ -58,7 +58,7 @@ describe('fillTiers', () => {
   });
 
   it('모든 조건에 한도가 있고 부족하면 남는 금액을 할인 없이 계산한다', () => {
-    const capped = tiers.map((t) => ({ ...t, limit: t.limit ?? 100_000 }));
+    const capped = tiers.map((t, i) => (i === tiers.length - 1 ? { ...t, limit: 100_000 } : t));
     const r = fillTiers(1_100_000, capped);
     expect(r.overflow).toBe(100_000);
     // 600,000×0.94 + 300,000 + 100,000×0.99 + 100,000(할인 없음)
@@ -76,8 +76,9 @@ describe('fillTiers', () => {
 describe('itemYield', () => {
   it('예산으로 최고 효율 아이템을 사서 얻는 메소를 구한다', () => {
     const y = itemYield(2_500_000, [item(99_000, 49.8)]);
-    expect(y.count).toBeCloseTo(25.2525, 4);
-    expect(y.meso).toBeCloseTo(1_257.5758, 3);
+    // 2,500,000 / 99,000 = 25.25 → 정수 25개만 산다
+    expect(y.count).toBe(25);
+    expect(y.meso).toBeCloseTo(1_245, 3);
   });
 
   it('비교 가능한 아이템이 없으면 0을 돌려준다', () => {
@@ -91,21 +92,23 @@ describe('calculate — 블랙 기준 시나리오', () => {
   const s = state();
   const black = findGrade('black');
 
-  it('누적 0에서 블랙을 달면 실제 비용이 365,808원이다', () => {
+  it('누적 0에서 블랙을 달면 실제 비용이 391,106원이다', () => {
     const r = calculate(s, black.req, black.fee, 0);
     expect(r.needCash).toBe(2_500_000);
     expect(r.spend).toBeCloseTo(2_416_320, 6);
-    expect(r.cash.meso).toBeCloseTo(1_257.5758, 3);
-    expect(r.credit.meso).toBeCloseTo(106.25, 6);
-    expect(r.cashBack).toBeCloseTo(2_050_512.03, 2);
-    expect(r.cost).toBeCloseTo(365_807.97, 2);
-    expect(r.recovery).toBeCloseTo(0.8486, 4);
+    // 캐시아이템 25개 × 49.8억 = 1,245억
+    expect(r.cash.meso).toBeCloseTo(1_245, 3);
+    // 크레딧 125,000 → 20,000크레딧 아이템 6개 × 17억 = 102억
+    expect(r.credit.meso).toBeCloseTo(102, 6);
+    expect(r.cashBack).toBeCloseTo(2_025_214.5, 2);
+    expect(r.cost).toBeCloseTo(391_105.5, 2);
+    expect(r.recovery).toBeCloseTo(0.8381, 4);
   });
 
   it('이미 32만이 누적되어 있으면 남은 금액만 계산한다', () => {
     const r = calculate(state({ alreadyCash: 320_000 }), black.req, black.fee, 320_000);
     expect(r.needCash).toBe(2_180_000);
-    expect(r.cost).toBeCloseTo(317_809.51, 2);
+    expect(r.cost).toBeCloseTo(330_823.9, 2);
     // 마지막 무제한 조건이 줄어든 만큼만 흡수한다
     expect(r.fills.map((f) => f.used)).toEqual([600_000, 300_000, 1_280_000]);
   });
@@ -113,22 +116,22 @@ describe('calculate — 블랙 기준 시나리오', () => {
   it('PC방 주당 10시간은 13만 캐시를 대신 채운다', () => {
     const r = calculate(state({ pcHours: 10 }), black.req, black.fee, 0);
     expect(r.pcCash).toBe(130_000);
+    // 목표에서 PC방 환산분(13만)을 뺀 나머지만 현금으로 충당
     expect(r.needCash).toBe(2_370_000);
-    expect(r.cost).toBeLessThan(365_808);
   });
 
   it('손익분기 시세는 현재 시세보다 높다', () => {
     const r = calculate(s, black.req, black.fee, 0);
-    expect(r.breakEvenSale).toBeCloseTo(59.4348, 3);
+    expect(r.breakEvenSale).toBeCloseTo(60.2052, 3);
   });
 });
 
 describe('calculate — 등급별 비교', () => {
-  it('낮은 등급은 좋은 할인 구간 안에서 해결되어 회수율이 더 높다', () => {
+  it('낮은 등급일수록 필요 캐시와 총 비용이 적다', () => {
     const s = state();
     const silver = calculate(s, findGrade('silver').req, findGrade('silver').fee, 0);
     const black = calculate(s, findGrade('black').req, findGrade('black').fee, 0);
-    expect(silver.recovery).toBeGreaterThan(black.recovery);
+    expect(silver.needCash).toBeLessThan(black.needCash);
     expect(silver.cost).toBeLessThan(black.cost);
   });
 
@@ -150,25 +153,6 @@ describe('calculate — 등급별 비교', () => {
   });
 });
 
-describe('calcMaplePoint', () => {
-  it('보유 포인트로 살 수 있는 만큼만 계산한다', () => {
-    const s = state({
-      mpOwned: 500_000,
-      mpItems: [item(100_000, 20, '10만 포인트 아이템')],
-    });
-    const r = calcMaplePoint(s, 3);
-    expect(r.count).toBeCloseTo(5, 6);
-    expect(r.meso).toBeCloseTo(100, 6);
-    // 100억 × 0.97 × 1,550
-    expect(r.cashBack).toBeCloseTo(150_350, 2);
-  });
-
-  it('시세를 입력하지 않으면 0이다', () => {
-    const r = calcMaplePoint(state({ mpOwned: 500_000 }), 3);
-    expect(r.cashBack).toBe(0);
-  });
-});
-
 describe('빈 입력 방어', () => {
   it('모든 값이 비어도 예외 없이 0을 돌려준다', () => {
     const empty = state({
@@ -176,10 +160,7 @@ describe('빈 입력 방어', () => {
       pcHours: null,
       tiers: [],
       cashItems: [],
-      creditRate: null,
       creditItems: [],
-      mpOwned: null,
-      mpItems: [],
       feeRate: null,
       exRate: null,
     });

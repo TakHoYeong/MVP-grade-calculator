@@ -1,4 +1,4 @@
-import { PC_CASH_PER_HOUR, WEEKS } from './grades';
+import { CREDIT_EARN_RATE, PC_CASH_PER_HOUR, WEEKS } from './grades';
 import type { CalcResult, CalcState, CashTier, ItemRow, ItemYield, TierFill } from './types';
 
 /**
@@ -78,7 +78,8 @@ export function itemYield(budget: number, rows: ItemRow[]): ItemYield {
   if (!best || n(best.row.unitCost) <= 0) {
     return { best: null, bestEfficiency: null, count: 0, meso: 0 };
   }
-  const count = budget / n(best.row.unitCost);
+  // 아이템은 정수 개수만 살 수 있다 — 0.5개는 없으므로 내림한다.
+  const count = Math.floor(budget / n(best.row.unitCost));
   return {
     best: best.row,
     bestEfficiency: best.efficiency,
@@ -107,7 +108,7 @@ export function calculate(
   const spend = paid - earned;
 
   const cash = itemYield(needCash, state.cashItems);
-  const creditEarned = needCash * (n(state.creditRate) / 100);
+  const creditEarned = needCash * (CREDIT_EARN_RATE / 100);
   const credit = itemYield(creditEarned, state.creditItems);
 
   const meso = cash.meso + credit.meso;
@@ -154,14 +155,4 @@ function breakEvenSale(args: {
   if (!cash.best || cash.count <= 0 || exRate <= 0 || feeMultiplier <= 0) return null;
   const requiredMeso = spend / exRate / feeMultiplier;
   return (requiredMeso - credit.meso) / cash.count;
-}
-
-/**
- * 메이플포인트로 사는 아이템의 판매 수익.
- * 메이플포인트는 MVP 누적에 반영되지 않으므로 등급 달성 비용과 분리해서 다룬다.
- */
-export function calcMaplePoint(state: CalcState, feePct: number) {
-  const result = itemYield(n(state.mpOwned), state.mpItems);
-  const cashBack = result.meso * (1 - feePct / 100) * n(state.exRate);
-  return { ...result, cashBack };
 }

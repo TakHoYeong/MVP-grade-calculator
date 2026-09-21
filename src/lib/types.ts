@@ -17,7 +17,6 @@ export interface Grade {
  */
 export interface CashTier {
   id: string;
-  name: string;
   limit: number | null;
   /** 할인율(%) */
   discount: number | null;
@@ -27,7 +26,7 @@ export interface CashTier {
 
 /**
  * 판매 효율을 비교할 아이템 한 줄.
- * unitCost 의 단위는 종류에 따라 달라진다 — 캐시(원) · 크레딧 · 메이플포인트.
+ * unitCost 의 단위는 종류에 따라 달라진다 — 캐시(원) · 크레딧.
  */
 export interface ItemRow {
   id: string;
@@ -39,7 +38,7 @@ export interface ItemRow {
 }
 
 /** 아이템 비교표 종류 */
-export type ItemKind = 'cash' | 'credit' | 'mp';
+export type ItemKind = 'cash' | 'credit';
 
 /** 계산기 전체 입력 상태 */
 export interface CalcState {
@@ -50,12 +49,7 @@ export interface CalcState {
   pcHours: number | null;
   tiers: CashTier[];
   cashItems: ItemRow[];
-  /** 캐시 사용액 대비 크레딧 적립률(%) */
-  creditRate: number | null;
   creditItems: ItemRow[];
-  /** 보유 메이플포인트 */
-  mpOwned: number | null;
-  mpItems: ItemRow[];
   /** 판매금 수령 수수료(%) */
   feeRate: number | null;
   /** 환전 시세: 원 / 1억 메소 */

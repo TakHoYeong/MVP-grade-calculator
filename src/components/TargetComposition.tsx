@@ -28,7 +28,7 @@ export function TargetComposition({ grade, alreadyCash, pcCash, needCash }: Prop
     <div className="comp">
       <div className="comp-head">
         <span>
-          목표 <b>{int(grade.req)}</b> 캐시를 어떻게 채우는가
+          목표 <b>{int(grade.req)}</b> 캐시, 이렇게 채워요
         </span>
         <span>
           {needCash > 0 ? (

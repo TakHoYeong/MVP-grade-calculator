@@ -9,7 +9,7 @@ import { ResultBar } from './components/ResultBar';
 import { TargetComposition } from './components/TargetComposition';
 import { TierTable } from './components/TierTable';
 import { useCalcState } from './hooks/useCalcState';
-import { calcMaplePoint, calculate, n } from './lib/calc';
+import { calculate, n } from './lib/calc';
 import { eok, int, won } from './lib/format';
 import { findGrade } from './lib/grades';
 
@@ -37,7 +37,6 @@ export default function App() {
     [state, grade.req, fee, alreadyCash],
   );
   const maintenance = useMemo(() => calculate(state, grade.req, fee, 0), [state, grade.req, fee]);
-  const maplePoint = useMemo(() => calcMaplePoint(state, fee), [state, fee]);
 
   const breakEvenDiff =
     result.breakEvenSale !== null && result.cash.best
@@ -61,6 +60,7 @@ export default function App() {
           hint="최근 13주 동안 이미 사용한 넥슨캐시"
           value={state.alreadyCash}
           placeholder="0"
+          comma
           onChange={(v) => patch({ alreadyCash: v })}
         />
         <InlineField
@@ -77,20 +77,23 @@ export default function App() {
           pcCash={result.pcCash}
           needCash={result.needCash}
         />
+
+        <InlineField
+          label="환전 시세"
+          hint="1억 메소당 현금 시세 (원)"
+          value={state.exRate}
+          comma
+          onChange={(v) => patch({ exRate: v })}
+        />
       </Card>
 
-      <ResultBar
-        grade={grade}
-        result={result}
-        maintenance={maintenance}
-        mpCashBack={maplePoint.cashBack}
-      />
+      <ResultBar grade={grade} result={result} maintenance={maintenance} />
 
       {/* 1단계 */}
       <Card
         step={1}
-        title="넥슨캐시 구매 조건"
-        desc="할인 조건별 한도를 위에서부터 순서대로 채워 계산합니다. 한도를 비우면 나머지 전부를 그 조건으로 계산합니다."
+        title="넥슨캐시 구매 방식"
+        desc="문화상품권 할인, 신용카드 적립처럼 넥슨캐시에 적용한 할인·적립 조건을 넣어 실제 결제 비용을 계산합니다."
       >
         <TierTable
           tiers={state.tiers}
@@ -125,7 +128,7 @@ export default function App() {
       <Card
         step={2}
         title="판매 효율 비교"
-        desc="종류별로 여러 아이템을 넣으면 가장 유리한 항목에 ★ 표시와 강조색이 자동으로 붙습니다."
+        desc="판매할 캐시아이템 중 가장 효율이 좋은 항목에 ★ 표시됩니다."
       >
         <h3 className="subhead">
           가. 캐시아이템<span className="tag">캐시로 구매 → 메소 판매</span>
@@ -140,14 +143,8 @@ export default function App() {
         />
 
         <h3 className="subhead">
-          나. 크레딧아이템<span className="tag">캐시 사용액의 일부가 크레딧으로 적립</span>
+          나. 크레딧아이템<span className="tag">캐시 사용액의 5%가 크레딧으로 적립 (고정)</span>
         </h3>
-        <InlineField
-          label="크레딧 적립률"
-          hint="캐시 사용액 대비 %"
-          value={state.creditRate}
-          onChange={(v) => patch({ creditRate: v })}
-        />
         <ItemTable
           rows={state.creditItems}
           costLabel="필요크레딧"
@@ -157,26 +154,7 @@ export default function App() {
           onAdd={() => addItem('creditItems')}
         />
 
-        <h3 className="subhead">
-          다. 메이플포인트아이템<span className="tag">MVP 누적에는 반영되지 않는 별도 재화</span>
-        </h3>
-        <InlineField
-          label="보유 메이플포인트"
-          hint="현재 갖고 있는 수량"
-          value={state.mpOwned}
-          placeholder="예: 500000"
-          onChange={(v) => patch({ mpOwned: v })}
-        />
-        <ItemTable
-          rows={state.mpItems}
-          costLabel="필요포인트"
-          effLabel="(억/만포인트)"
-          onPatch={(id, p) => patchItem('mpItems', id, p)}
-          onRemove={(id) => removeItem('mpItems', id)}
-          onAdd={() => addItem('mpItems')}
-        />
-
-        <h3 className="subhead">라. 판매 수수료</h3>
+        <h3 className="subhead">다. 판매 수수료</h3>
         <InlineField
           label="판매금 수령 수수료"
           hint="등급에 따라 자동 설정 · 직접 수정 가능"
@@ -186,13 +164,11 @@ export default function App() {
       </Card>
 
       {/* 3단계 */}
-      <Card step={3} title="메소 → 실제 현금 환전" desc="메소를 실제 현금으로 바꾸는 시세를 입력하세요.">
-        <InlineField
-          label="환전 시세"
-          hint="원 / 1억 메소"
-          value={state.exRate}
-          onChange={(v) => patch({ exRate: v })}
-        />
+      <Card
+        step={3}
+        title="메소 → 실제 현금 환전"
+        desc="0번에서 입력한 환전 시세 기준으로, 캐시아이템이 얼마에 팔려야 본전인지 보여줍니다."
+      >
         <div className="totals">
           <span>
             손익분기 캐시아이템 시세
@@ -221,20 +197,13 @@ export default function App() {
         <div className="note">
           추가 비용은 이미 누적된 캐시와 PC방 환산분을 뺀 나머지만 계산한 값입니다. 유지 비용은 그
           등급을 계속 유지할 때 드는 13주 평균입니다. 각 등급의 기본 옥션 수수료(브론즈 5% · 실버
-          이상 3%)를 적용했고, 메이플포인트 판매 수익은 등급과 무관하므로 제외했습니다.
+          이상 3%)를 적용했습니다.
         </div>
       </Card>
 
       {/* 5단계 */}
       <Card step={5} title="상세 내역" desc="최고 효율 아이템 기준으로 계산된 세부 값입니다.">
-        <Breakdown
-          grade={grade}
-          result={result}
-          alreadyCash={alreadyCash}
-          feeRate={fee}
-          maplePoint={maplePoint}
-          mpOwned={Math.max(0, n(state.mpOwned))}
-        />
+        <Breakdown grade={grade} result={result} alreadyCash={alreadyCash} feeRate={fee} />
         <div className="note">
           <b>계산에서 빠진 것</b> · 마일리지로 할인받아 결제한 금액은 MVP 누적에 반영되지 않습니다.
           청약철회가 가능한 아이템은 캐시보관함에서 인벤토리로 옮길 때 반영됩니다. 이미 결제한

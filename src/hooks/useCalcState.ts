@@ -5,7 +5,7 @@ import { clearState, loadState, saveState } from '../lib/storage';
 import type { CalcState, CashTier, GradeKey, ItemRow } from '../lib/types';
 
 /** 아이템 표 세 종류를 가리키는 키 */
-type ItemListKey = 'cashItems' | 'creditItems' | 'mpItems';
+type ItemListKey = 'cashItems' | 'creditItems';
 
 /**
  * 계산기 입력 상태를 관리한다.
@@ -34,10 +34,18 @@ export function useCalcState() {
     }));
   }, []);
 
-  const addTier = useCallback(() => {
+  const addTier = useCallback((init?: Partial<Pick<CashTier, 'limit' | 'discount' | 'earn'>>) => {
     setState((prev) => ({
       ...prev,
-      tiers: [...prev.tiers, { id: newId('t'), name: '', limit: null, discount: 0, earn: 0 }],
+      tiers: [
+        ...prev.tiers,
+        {
+          id: newId('t'),
+          limit: init?.limit ?? null,
+          discount: init?.discount ?? null,
+          earn: init?.earn ?? null,
+        },
+      ],
     }));
   }, []);
 

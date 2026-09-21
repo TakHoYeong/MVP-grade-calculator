@@ -29,6 +29,9 @@ export const WEEKS_PER_MONTH = 4.345;
 /** 블랙 등급 초과분 이월 한도 */
 export const BLACK_CARRYOVER_CAP = 10_000_000;
 
+/** 크레딧 적립률(%) — 캐시 사용액 대비 고정값 */
+export const CREDIT_EARN_RATE = 5;
+
 export function findGrade(key: GradeKey): Grade {
   return GRADES.find((g) => g.key === key) ?? GRADES[GRADES.length - 1];
 }

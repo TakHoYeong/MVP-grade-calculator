@@ -6,8 +6,6 @@ interface Props {
   result: CalcResult;
   alreadyCash: number;
   feeRate: number;
-  maplePoint: ItemYield & { cashBack: number };
-  mpOwned: number;
 }
 
 function Group({ label }: { label: string }) {
@@ -24,7 +22,7 @@ function Row({ k, v, total }: { k: string; v: string; total?: boolean }) {
 }
 
 /** 계산 과정을 단계별로 펼쳐 보여준다 */
-export function Breakdown({ grade, result, alreadyCash, feeRate, maplePoint, mpOwned }: Props) {
+export function Breakdown({ grade, result, alreadyCash, feeRate }: Props) {
   const itemName = (y: ItemYield) => (y.best ? y.best.name || '(이름 없음)' : '-');
 
   return (
@@ -57,18 +55,6 @@ export function Breakdown({ grade, result, alreadyCash, feeRate, maplePoint, mpO
       <Row k={`수수료 ${feeRate}% 차감 후`} v={`${eok(result.mesoAfterFee)}억`} />
       <Row k="환전 회수 현금" v={won(result.cashBack)} />
       <Row k={`${grade.name}까지 추가로 드는 현금`} v={won(result.cost)} total />
-
-      {maplePoint.cashBack > 0 && (
-        <>
-          <Group label="메이플포인트 (등급과 별개)" />
-          <Row k="보유 메이플포인트" v={int(mpOwned)} />
-          <Row k="선택된 아이템" v={itemName(maplePoint)} />
-          <Row k="구매 개수" v={count(maplePoint.count)} />
-          <Row k="판매메소" v={`${eok(maplePoint.meso)}억`} />
-          <Row k="환전 회수 현금" v={won(maplePoint.cashBack)} />
-          <Row k="최종 추가 현금" v={won(result.cost - maplePoint.cashBack)} total />
-        </>
-      )}
     </div>
   );
 }

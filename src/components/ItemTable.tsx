@@ -61,12 +61,14 @@ export function ItemTable({ rows, costLabel, effLabel, onPatch, onRemove, onAdd 
                 <NumberField
                   label={costLabel}
                   value={row.unitCost}
+                  comma
                   onChange={(v) => onPatch(row.id, { unitCost: v })}
                 />
                 <NumberField
                   label="판매메소(억)"
                   value={row.saleMeso}
                   placeholder="시세 입력"
+                  comma
                   onChange={(v) => onPatch(row.id, { saleMeso: v })}
                 />
               </div>

@@ -23,10 +23,10 @@ export function pct(v: number): string {
   return `${(v * 100).toLocaleString(LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
 }
 
-/** 개수 (소수 둘째 자리) */
+/** 개수 (정수 — 아이템은 정수 개수만 산다) */
 export function count(v: number): string {
   if (!Number.isFinite(v)) v = 0;
-  return `${v.toLocaleString(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}개`;
+  return `${Math.round(v).toLocaleString(LOCALE)}개`;
 }
 
 /** 250000 → "25만" */
