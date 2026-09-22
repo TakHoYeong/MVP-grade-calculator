@@ -29,6 +29,7 @@ export default function App() {
     patchSale,
     addSale,
     removeSale,
+    importItemsToSales,
     reset,
   } = useCalcState();
 
@@ -45,6 +46,20 @@ export default function App() {
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+
+  // 2번 효율표에서 3번으로 새로 담을 수 있는(아직 3번에 없는) 항목 수
+  const importableCount = useMemo(() => {
+    const seen = new Set(state.sales.map((s) => `${s.kind}|${s.unitCost}|${s.saleMeso}`));
+    const count = (rows: typeof state.cashItems, kind: string) =>
+      rows.filter(
+        (r) =>
+          typeof r.unitCost === 'number' &&
+          r.unitCost > 0 &&
+          r.saleMeso !== null &&
+          !seen.has(`${kind}|${r.unitCost}|${r.saleMeso}`),
+      ).length;
+    return count(state.cashItems, 'cash') + count(state.creditItems, 'credit');
+  }, [state.sales, state.cashItems, state.creditItems]);
 
   return (
     <div className="wrap">
@@ -184,6 +199,15 @@ export default function App() {
         title="판매 시뮬레이션"
         desc="실제로 팔 계획을 그대로 넣어 회수 현금과 실제 비용을 계산합니다."
       >
+        <button
+          type="button"
+          className="import-btn"
+          onClick={importItemsToSales}
+          disabled={importableCount === 0}
+          title={importableCount === 0 ? '2번 효율표에 새로 담을 항목이 없습니다' : undefined}
+        >
+          2번 효율표에서 담기{importableCount > 0 ? ` (${importableCount})` : ''}
+        </button>
         <SaleSim
           sales={state.sales}
           result={result}

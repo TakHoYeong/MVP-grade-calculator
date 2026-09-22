@@ -880,6 +880,29 @@ input.txt {
 }
 
 /* ---------- 판매 시뮬레이션 ---------- */
+.import-btn {
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--accent-strong);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.import-btn:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.import-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .sim-add {
   display: grid;
   grid-template-columns: 76px 1fr 1fr;
