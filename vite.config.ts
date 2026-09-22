@@ -59,6 +59,14 @@ export default defineConfig({
   // 로컬에서 dist/index.html 을 직접 여는 경우까지 모두 그대로 동작한다.
   base: './',
 
+  server: {
+    // 개발 서버 포트를 14911 로 고정한다. (5173 은 다른 용도로 비워 둔다)
+    // strictPort: 14911 이 이미 쓰이면 다른 포트로 슬그머니 옮기지 않고 에러를 낸다.
+    // PORT 환경변수가 있으면 그 값을 우선한다(CI 등). 프로덕션 빌드(vite build)에는 영향이 없다.
+    port: Number(process.env.PORT) || 14911,
+    strictPort: true,
+  },
+
   build: {
     outDir: 'dist',
     // 소스맵을 남겨 두면 배포된 페이지에서도 원본 코드로 디버깅할 수 있다.
