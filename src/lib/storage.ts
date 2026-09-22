@@ -4,7 +4,7 @@ import type { CalcState } from './types';
  * 입력값을 브라우저에만 저장한다.
  * 저장 구조를 바꾸면 KEY 의 버전을 올려 옛 데이터와 충돌을 피한다.
  */
-const KEY = 'mvp-calc-state-v2';
+const KEY = 'mvp-calc-state-v3';
 
 export function loadState(): CalcState | null {
   try {

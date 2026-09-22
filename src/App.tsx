@@ -109,6 +109,7 @@ export default function App() {
           label="환전 시세"
           hint="1억 메소당 현금 시세 (원)"
           value={state.exRate}
+          placeholder="1,550"
           comma
           onChange={(v) => patch({ exRate: v })}
         />
@@ -141,7 +142,7 @@ export default function App() {
           onAdd={addTier}
         />
 
-        {result.overflow > 0 && (
+        {state.tiers.length > 0 && result.overflow > 0 && (
           <div className="note warn">
             <b>한도 부족</b> · 조건 한도 합계보다 {int(result.overflow)}캐시가 더 필요합니다. 이
             금액은 할인 없이 계산했습니다. 한도를 비운 조건을 하나 두면 나머지 전부를 그 조건으로

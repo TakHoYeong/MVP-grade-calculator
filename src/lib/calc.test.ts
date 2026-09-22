@@ -43,7 +43,12 @@ describe('efficiency', () => {
 });
 
 describe('fillTiers', () => {
-  const tiers = createDefaultState().tiers;
+  // 여러 구간을 위에서부터 채우는 동작을 확인하기 위한 고정 조건 3개
+  const tiers = [
+    { id: newId('t'), limit: 600_000, discount: 6, earn: 0 },
+    { id: newId('t'), limit: 300_000, discount: 0, earn: 0 },
+    { id: newId('t'), limit: 1_600_000, discount: 1, earn: 2 },
+  ];
 
   it('한도를 위에서부터 채우고 마지막 구간이 나머지를 흡수한다', () => {
     const r = fillTiers(2_500_000, tiers);
