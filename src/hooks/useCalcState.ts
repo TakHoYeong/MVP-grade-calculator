@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { createDefaultState, emptyItem, newId } from '../lib/defaults';
 import { findGrade } from '../lib/grades';
 import { clearState, loadState, saveState } from '../lib/storage';
-import type { CalcState, CashTier, GradeKey, ItemRow } from '../lib/types';
+import type { CalcState, CashTier, GradeKey, ItemRow, SaleRow } from '../lib/types';
 
 /** 아이템 표 세 종류를 가리키는 키 */
 type ItemListKey = 'cashItems' | 'creditItems';
@@ -68,6 +68,36 @@ export function useCalcState() {
     setState((prev) => ({ ...prev, [list]: prev[list].filter((row) => row.id !== id) }));
   }, []);
 
+  const patchSale = useCallback((id: string, p: Partial<SaleRow>) => {
+    setState((prev) => ({
+      ...prev,
+      sales: prev.sales.map((row) => (row.id === id ? { ...row, ...p } : row)),
+    }));
+  }, []);
+
+  const addSale = useCallback(
+    (init?: Partial<Pick<SaleRow, 'kind' | 'unitCost' | 'saleMeso' | 'qty'>>) => {
+      setState((prev) => ({
+        ...prev,
+        sales: [
+          ...prev.sales,
+          {
+            id: newId('s'),
+            kind: init?.kind ?? 'cash',
+            unitCost: init?.unitCost ?? null,
+            saleMeso: init?.saleMeso ?? null,
+            qty: init?.qty ?? null,
+          },
+        ],
+      }));
+    },
+    [],
+  );
+
+  const removeSale = useCallback((id: string) => {
+    setState((prev) => ({ ...prev, sales: prev.sales.filter((row) => row.id !== id) }));
+  }, []);
+
   const reset = useCallback(() => {
     clearState();
     setState(createDefaultState());
@@ -83,6 +113,9 @@ export function useCalcState() {
     patchItem,
     addItem,
     removeItem,
+    patchSale,
+    addSale,
+    removeSale,
     reset,
   };
 }

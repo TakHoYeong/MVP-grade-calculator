@@ -1,4 +1,4 @@
-import type { CalcState, ItemRow } from './types';
+import type { CalcState, ItemRow, SaleRow } from './types';
 
 /** 행 추가·초기화에 쓰는 id 생성기 */
 let seq = 0;
@@ -9,6 +9,10 @@ export function newId(prefix = 'r'): string {
 
 export function emptyItem(): ItemRow {
   return { id: newId('i'), name: '', unitCost: null, saleMeso: null };
+}
+
+export function emptySale(kind: SaleRow['kind'] = 'cash'): SaleRow {
+  return { id: newId('s'), kind, unitCost: null, saleMeso: null, qty: null };
 }
 
 /**
@@ -25,8 +29,12 @@ export function createDefaultState(): CalcState {
       { id: newId('t'), limit: 300_000, discount: 0, earn: 0 },
       { id: newId('t'), limit: 1_600_000, discount: 1, earn: 2 },
     ],
-    cashItems: [{ id: newId('i'), name: '99,000원 아이템', unitCost: 99_000, saleMeso: 49.8 }],
-    creditItems: [{ id: newId('i'), name: '20,000크레딧 아이템', unitCost: 20_000, saleMeso: 17 }],
+    cashItems: [{ id: newId('i'), name: '캐치! 티니핑 10개세트', unitCost: 99_000, saleMeso: 49.8 }],
+    creditItems: [{ id: newId('i'), name: '프라임 에디셔널큐브', unitCost: 20_000, saleMeso: 17 }],
+    sales: [
+      { id: newId('s'), kind: 'cash', unitCost: 99_000, saleMeso: 49.8, qty: 25 },
+      { id: newId('s'), kind: 'credit', unitCost: 20_000, saleMeso: 17, qty: 6 },
+    ],
     feeRate: 3,
     exRate: 1_550,
   };

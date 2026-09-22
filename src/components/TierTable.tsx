@@ -39,7 +39,7 @@ export function TierTable({ tiers, fills, onPatch, onRemove, onAdd }: Props) {
         <NumberField
           label="충전 금액"
           value={charge}
-          placeholder="예: 600000"
+          placeholder="600,000"
           hideLabelOnWide={false}
           comma
           onChange={setCharge}

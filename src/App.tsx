@@ -6,11 +6,12 @@ import { GradePicker } from './components/GradePicker';
 import { InlineField } from './components/InlineField';
 import { ItemTable } from './components/ItemTable';
 import { ResultBar } from './components/ResultBar';
+import { SaleSim } from './components/SaleSim';
 import { TargetComposition } from './components/TargetComposition';
 import { TierTable } from './components/TierTable';
 import { useCalcState } from './hooks/useCalcState';
 import { calculate, n } from './lib/calc';
-import { eok, int, won } from './lib/format';
+import { int, won } from './lib/format';
 import { findGrade } from './lib/grades';
 
 export default function App() {
@@ -24,6 +25,9 @@ export default function App() {
     patchItem,
     addItem,
     removeItem,
+    patchSale,
+    addSale,
+    removeSale,
     reset,
   } = useCalcState();
 
@@ -37,11 +41,6 @@ export default function App() {
     [state, grade.req, fee, alreadyCash],
   );
   const maintenance = useMemo(() => calculate(state, grade.req, fee, 0), [state, grade.req, fee]);
-
-  const breakEvenDiff =
-    result.breakEvenSale !== null && result.cash.best
-      ? result.breakEvenSale - n(result.cash.best.saleMeso)
-      : null;
 
   return (
     <div className="wrap">
@@ -128,7 +127,7 @@ export default function App() {
       <Card
         step={2}
         title="판매 효율 비교"
-        desc="판매할 캐시아이템 중 가장 효율이 좋은 항목에 ★ 표시됩니다."
+        desc="어떤 아이템이 유리한지 눈으로 비교만 하는 참고용입니다. 실제 회수·비용 계산은 3번 판매 시뮬레이션에서 합니다."
       >
         <h3 className="subhead">
           가. 캐시아이템<span className="tag">캐시로 구매 → 메소 판매</span>
@@ -166,25 +165,16 @@ export default function App() {
       {/* 3단계 */}
       <Card
         step={3}
-        title="메소 → 실제 현금 환전"
-        desc="0번에서 입력한 환전 시세 기준으로, 캐시아이템이 얼마에 팔려야 본전인지 보여줍니다."
+        title="판매 시뮬레이션"
+        desc="실제로 팔 계획을 그대로 넣어 회수 현금과 실제 비용을 계산합니다. 시장 상황에 맞춰 같은 아이템도 여러 가격대로 나눠 넣으세요."
       >
-        <div className="totals">
-          <span>
-            손익분기 캐시아이템 시세
-            <b>{result.breakEvenSale !== null ? `${eok(result.breakEvenSale)}억` : '-'}</b>
-          </span>
-          <span>
-            현재 시세와 차이
-            <b>
-              {breakEvenDiff !== null
-                ? `${breakEvenDiff > 0 ? '+' : ''}${eok(breakEvenDiff)}억 ${
-                    breakEvenDiff > 0 ? '더 올라야 본전' : '(이미 본전 이상)'
-                  }`
-                : '-'}
-            </b>
-          </span>
-        </div>
+        <SaleSim
+          sales={state.sales}
+          result={result}
+          onPatch={patchSale}
+          onRemove={removeSale}
+          onAdd={addSale}
+        />
       </Card>
 
       {/* 4단계 */}
@@ -202,7 +192,7 @@ export default function App() {
       </Card>
 
       {/* 5단계 */}
-      <Card step={5} title="상세 내역" desc="최고 효율 아이템 기준으로 계산된 세부 값입니다.">
+      <Card step={5} title="상세 내역" desc="판매 시뮬레이션 기준으로 계산된 세부 값입니다.">
         <Breakdown grade={grade} result={result} alreadyCash={alreadyCash} feeRate={fee} />
         <div className="note">
           <b>계산에서 빠진 것</b> · 마일리지로 할인받아 결제한 금액은 MVP 누적에 반영되지 않습니다.

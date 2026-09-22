@@ -1,5 +1,5 @@
-import { count, eok, fixed, int, won } from '../lib/format';
-import type { CalcResult, Grade, ItemYield } from '../lib/types';
+import { eok, fixed, int, won } from '../lib/format';
+import type { CalcResult, Grade } from '../lib/types';
 
 interface Props {
   grade: Grade;
@@ -23,14 +23,12 @@ function Row({ k, v, total }: { k: string; v: string; total?: boolean }) {
 
 /** 계산 과정을 단계별로 펼쳐 보여준다 */
 export function Breakdown({ grade, result, alreadyCash, feeRate }: Props) {
-  const itemName = (y: ItemYield) => (y.best ? y.best.name || '(이름 없음)' : '-');
-
   return (
     <div>
       <Group label="목표 채우기" />
       <Row k="목표 등급 기준" v={`${int(grade.req)}캐시`} />
       <Row k="이미 누적된 캐시" v={`${int(alreadyCash)}캐시`} />
-      <Row k={`PC방 환산 캐시 (13주)`} v={`${int(result.pcCash)}캐시`} />
+      <Row k="PC방 환산 캐시 (13주)" v={`${int(result.pcCash)}캐시`} />
       <Row k="현금으로 살 캐시" v={`${int(result.needCash)}캐시`} />
 
       <Group label="캐시 결제" />
@@ -39,21 +37,15 @@ export function Breakdown({ grade, result, alreadyCash, feeRate }: Props) {
       <Row k="순지출" v={won(result.spend)} />
       <Row k="캐시당 실질 원가" v={`${fixed(result.costPerCash, 4)}원`} />
 
-      <Group label="캐시아이템" />
-      <Row k="선택된 아이템" v={itemName(result.cash)} />
-      <Row k="구매 개수" v={result.cash.best ? count(result.cash.count) : '-'} />
-      <Row k="판매메소" v={`${eok(result.cash.meso)}억`} />
-
-      <Group label="크레딧아이템" />
-      <Row k="크레딧 적립량" v={int(result.creditEarned)} />
-      <Row k="선택된 아이템" v={itemName(result.credit)} />
-      <Row k="구매 개수" v={result.credit.best ? count(result.credit.count) : '-'} />
-      <Row k="판매메소" v={`${eok(result.credit.meso)}억`} />
-
-      <Group label="합계" />
-      <Row k="총 판매메소" v={`${eok(result.meso)}억`} />
+      <Group label="판매 시뮬레이션" />
+      <Row k="캐시 사용 / 목표" v={`${int(result.sale.cashUsed)} / ${int(result.needCash)}`} />
+      <Row k="크레딧 사용 / 가용" v={`${int(result.sale.creditUsed)} / ${int(result.creditAvailable)}`} />
+      <Row k="입력한 총 판매메소" v={`${eok(result.sale.mesoRaw)}억`} />
+      <Row k="이 등급 환산 판매메소" v={`${eok(result.meso)}억`} />
       <Row k={`수수료 ${feeRate}% 차감 후`} v={`${eok(result.mesoAfterFee)}억`} />
       <Row k="환전 회수 현금" v={won(result.cashBack)} />
+
+      <Group label="합계" />
       <Row k={`${grade.name}까지 추가로 드는 현금`} v={won(result.cost)} total />
     </div>
   );

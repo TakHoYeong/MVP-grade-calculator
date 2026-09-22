@@ -40,6 +40,24 @@ export interface ItemRow {
 /** 아이템 비교표 종류 */
 export type ItemKind = 'cash' | 'credit';
 
+/** 판매 시뮬레이션 재화 종류 — 캐시로 산 아이템 / 크레딧으로 산 아이템 */
+export type SaleKind = 'cash' | 'credit';
+
+/**
+ * 판매 시뮬레이션 한 줄.
+ * "얼마짜리 아이템을 얼마에 몇 개 판다"를 그대로 옮긴 것.
+ */
+export interface SaleRow {
+  id: string;
+  kind: SaleKind;
+  /** 아이템 1개 원가 — cash: 원, credit: 크레딧 */
+  unitCost: number | null;
+  /** 1개당 판매가(억 메소) */
+  saleMeso: number | null;
+  /** 판매 개수 */
+  qty: number | null;
+}
+
 /** 계산기 전체 입력 상태 */
 export interface CalcState {
   grade: GradeKey;
@@ -48,8 +66,11 @@ export interface CalcState {
   /** 프리미엄PC방 주당 이용 시간 */
   pcHours: number | null;
   tiers: CashTier[];
+  /** 2번 효율 확인용 — 계산에는 쓰지 않는다 */
   cashItems: ItemRow[];
   creditItems: ItemRow[];
+  /** 3번 판매 시뮬레이션 — 실제 회수/비용 계산의 근거 */
+  sales: SaleRow[];
   /** 판매금 수령 수수료(%) */
   feeRate: number | null;
   /** 환전 시세: 원 / 1억 메소 */
@@ -65,13 +86,14 @@ export interface TierFill {
   paid: number;
 }
 
-/** 아이템 한 종류를 팔아 얻는 결과 */
-export interface ItemYield {
-  best: ItemRow | null;
-  /** 최고 효율 항목의 효율값 (1만 단위 재화당 억 메소) */
-  bestEfficiency: number | null;
-  count: number;
-  meso: number;
+/** 판매 시뮬레이션 집계 (등급·수수료 무관, 입력한 그대로의 총량) */
+export interface SaleTotals {
+  /** 캐시로 산 아이템 총 원가(원) */
+  cashUsed: number;
+  /** 크레딧으로 산 아이템 총 크레딧 */
+  creditUsed: number;
+  /** 입력한 판매 메소 총합(억) */
+  mesoRaw: number;
 }
 
 /** 목표 등급 하나에 대한 계산 결과 */
@@ -95,12 +117,12 @@ export interface CalcResult {
   /** 캐시 1원어치를 확보하는 데 드는 실제 비용 */
   costPerCash: number;
 
-  cash: ItemYield;
-  /** 적립되는 크레딧 총량 */
-  creditEarned: number;
-  credit: ItemYield;
+  /** 판매 시뮬레이션 입력 총량 (등급 무관) */
+  sale: SaleTotals;
+  /** 이 등급에서 쓸 수 있는 크레딧 (needCash 의 5%) */
+  creditAvailable: number;
 
-  /** 캐시 + 크레딧 아이템 판매 메소 합계 */
+  /** 시뮬 효율을 이 등급 needCash 로 환산한 판매 메소(억) */
   meso: number;
   mesoAfterFee: number;
   /** 메소를 환전해 회수하는 현금 */
@@ -109,6 +131,4 @@ export interface CalcResult {
   cost: number;
   /** 회수 현금 ÷ 순지출 */
   recovery: number;
-  /** 캐시아이템이 이 시세(억)면 실제 비용이 0이 된다 */
-  breakEvenSale: number | null;
 }

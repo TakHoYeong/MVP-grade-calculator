@@ -718,6 +718,137 @@ input.txt {
   outline-offset: 1px;
 }
 
+/* ---------- 판매 시뮬레이션 ---------- */
+.sim-add {
+  display: grid;
+  grid-template-columns: 76px 1fr 1fr;
+  gap: 8px 10px;
+  align-items: end;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--accent-soft);
+}
+
+.sim-kind-wrap {
+  display: block;
+}
+
+.sim-kind {
+  inline-size: 100%;
+  block-size: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.sim-add-btn {
+  grid-column: 1 / -1;
+  min-block-size: 40px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sim-add-btn:hover {
+  background: var(--accent-strong);
+}
+
+.sim-add-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.sim-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.sim-head {
+  display: none;
+}
+
+.sim-empty {
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+}
+
+.sim-item {
+  display: grid;
+  grid-template-columns: 76px 1fr 1fr;
+  gap: 8px 10px;
+  align-items: end;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.sim-cap {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+
+.sim-del {
+  justify-self: end;
+  align-self: center;
+  inline-size: 32px;
+  block-size: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sim-del:hover {
+  background: var(--warn-soft);
+  color: var(--danger);
+}
+
+.sim-del:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.sim-tag {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sim-tag.ok {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+.sim-tag.warn {
+  color: var(--danger);
+  background: var(--warn-soft);
+}
+
 /* ---------- 등급 비교 ---------- */
 .cmp-row .grade-name {
   font-family: 'Gothic A1', sans-serif;
@@ -909,6 +1040,67 @@ input.txt {
   }
 
   .tier-del {
+    justify-self: center;
+  }
+
+  /* 판매 시뮬레이션: 넓은 화면에서 한 줄 */
+  .sim-add {
+    grid-template-columns: 76px minmax(88px, 1.3fr) minmax(80px, 1fr) 58px auto;
+  }
+
+  .sim-add-btn {
+    grid-column: auto;
+    align-self: end;
+    padding: 0 18px;
+  }
+
+  .sim-head {
+    display: grid;
+    grid-template-columns: var(--scols);
+    gap: 10px;
+    padding: 0 4px 7px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sim-head span {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+    text-align: right;
+  }
+
+  .sim-head span:first-child {
+    text-align: left;
+  }
+
+  .sim-list {
+    gap: 0;
+  }
+
+  .sim-item {
+    grid-template-columns: var(--scols);
+    align-items: center;
+    gap: 10px;
+    padding: 7px 4px;
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sim-item:last-child {
+    border-bottom: none;
+  }
+
+  .sim-cap {
+    display: none;
+  }
+
+  .sim-cell {
+    text-align: right;
+  }
+
+  .sim-del {
     justify-self: center;
   }
 

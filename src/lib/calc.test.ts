@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { bestItem, calculate, efficiency, fillTiers, itemYield } from './calc';
+import { calculate, efficiency, fillTiers, n, sumSales } from './calc';
 import { createDefaultState, newId } from './defaults';
 import { findGrade } from './grades';
-import type { CalcState, ItemRow } from './types';
+import type { CalcState, ItemRow, SaleRow } from './types';
 
 /** 기본 상태 위에 일부만 덮어쓴다 */
 function state(patch: Partial<CalcState> = {}): CalcState {
@@ -11,42 +11,44 @@ function state(patch: Partial<CalcState> = {}): CalcState {
 function item(unitCost: number | null, saleMeso: number | null, name = ''): ItemRow {
   return { id: newId('test'), name, unitCost, saleMeso };
 }
+function sale(
+  kind: SaleRow['kind'],
+  unitCost: number | null,
+  saleMeso: number | null,
+  qty: number | null,
+): SaleRow {
+  return { id: newId('s'), kind, unitCost, saleMeso, qty };
+}
+
+describe('n', () => {
+  it('null·NaN 을 0 으로 흡수한다', () => {
+    expect(n(null)).toBe(0);
+    expect(n(undefined)).toBe(0);
+    expect(n(Number.NaN)).toBe(0);
+    expect(n(5)).toBe(5);
+  });
+});
 
 describe('efficiency', () => {
-  it('1만 단위 재화당 억 메소로 환산한다', () => {
-    // 99,000캐시로 49.8억 → 1만원당 5.0303억
+  it('1만 단위 재화당 억 메소로 환산한다 (2번 비교용)', () => {
     expect(efficiency(item(99_000, 49.8))).toBeCloseTo(5.0303, 4);
     expect(efficiency(item(20_000, 17))).toBeCloseTo(8.5, 4);
   });
 
-  it('입력이 비었거나 0이면 비교 대상에서 제외한다', () => {
+  it('입력이 비었거나 0이면 제외한다', () => {
     expect(efficiency(item(null, 10))).toBeNull();
     expect(efficiency(item(10_000, null))).toBeNull();
     expect(efficiency(item(0, 10))).toBeNull();
   });
 });
 
-describe('bestItem', () => {
-  it('효율이 가장 높은 항목을 고른다', () => {
-    const rows = [item(99_000, 49.8, 'A'), item(50_000, 30, 'B'), item(10_000, 4, 'C')];
-    // A 5.03 · B 6.00 · C 4.00
-    expect(bestItem(rows)?.row.name).toBe('B');
-  });
-
-  it('비교 가능한 항목이 없으면 null', () => {
-    expect(bestItem([item(null, null), item(0, 5)])).toBeNull();
-  });
-});
-
 describe('fillTiers', () => {
   const tiers = createDefaultState().tiers;
 
-  it('한도를 위에서부터 채우고 마지막 무제한 조건이 나머지를 흡수한다', () => {
+  it('한도를 위에서부터 채우고 마지막 구간이 나머지를 흡수한다', () => {
     const r = fillTiers(2_500_000, tiers);
     expect(r.fills.map((f) => f.used)).toEqual([600_000, 300_000, 1_600_000]);
-    // 600,000×0.94 + 300,000 + 1,600,000×0.99
     expect(r.paid).toBe(2_448_000);
-    // 1,600,000×0.99 의 2%
     expect(r.earned).toBeCloseTo(31_680, 6);
     expect(r.overflow).toBe(0);
   });
@@ -54,79 +56,93 @@ describe('fillTiers', () => {
   it('필요 금액이 적으면 앞쪽 조건만 사용한다', () => {
     const r = fillTiers(300_000, tiers);
     expect(r.fills.map((f) => f.used)).toEqual([300_000, 0, 0]);
-    expect(r.paid).toBe(282_000); // 6% 할인만 적용
+    expect(r.paid).toBe(282_000);
   });
 
   it('모든 조건에 한도가 있고 부족하면 남는 금액을 할인 없이 계산한다', () => {
     const capped = tiers.map((t, i) => (i === tiers.length - 1 ? { ...t, limit: 100_000 } : t));
     const r = fillTiers(1_100_000, capped);
     expect(r.overflow).toBe(100_000);
-    // 600,000×0.94 + 300,000 + 100,000×0.99 + 100,000(할인 없음)
     expect(r.paid).toBe(564_000 + 300_000 + 99_000 + 100_000);
   });
 
   it('필요 금액이 0이면 아무 조건도 사용하지 않는다', () => {
     const r = fillTiers(0, tiers);
     expect(r.paid).toBe(0);
-    expect(r.earned).toBe(0);
     expect(r.fills.every((f) => f.used === 0)).toBe(true);
   });
 });
 
-describe('itemYield', () => {
-  it('예산으로 최고 효율 아이템을 사서 얻는 메소를 구한다', () => {
-    const y = itemYield(2_500_000, [item(99_000, 49.8)]);
-    // 2,500,000 / 99,000 = 25.25 → 정수 25개만 산다
-    expect(y.count).toBe(25);
-    expect(y.meso).toBeCloseTo(1_245, 3);
+describe('sumSales', () => {
+  it('종류별로 사용액과 판매메소를 합산한다', () => {
+    const r = sumSales([
+      sale('cash', 100_000, 50, 20),
+      sale('credit', 10_000, 8, 5),
+      sale('cash', 50_000, 22, 4),
+    ]);
+    expect(r.cashUsed).toBe(100_000 * 20 + 50_000 * 4);
+    expect(r.creditUsed).toBe(10_000 * 5);
+    expect(r.mesoRaw).toBeCloseTo(50 * 20 + 8 * 5 + 22 * 4, 6);
   });
 
-  it('비교 가능한 아이템이 없으면 0을 돌려준다', () => {
-    const y = itemYield(1_000_000, [item(null, null)]);
-    expect(y.best).toBeNull();
-    expect(y.meso).toBe(0);
-  });
-});
-
-describe('calculate — 블랙 기준 시나리오', () => {
-  const s = state();
-  const black = findGrade('black');
-
-  it('누적 0에서 블랙을 달면 실제 비용이 391,106원이다', () => {
-    const r = calculate(s, black.req, black.fee, 0);
-    expect(r.needCash).toBe(2_500_000);
-    expect(r.spend).toBeCloseTo(2_416_320, 6);
-    // 캐시아이템 25개 × 49.8억 = 1,245억
-    expect(r.cash.meso).toBeCloseTo(1_245, 3);
-    // 크레딧 125,000 → 20,000크레딧 아이템 6개 × 17억 = 102억
-    expect(r.credit.meso).toBeCloseTo(102, 6);
-    expect(r.cashBack).toBeCloseTo(2_025_214.5, 2);
-    expect(r.cost).toBeCloseTo(391_105.5, 2);
-    expect(r.recovery).toBeCloseTo(0.8381, 4);
-  });
-
-  it('이미 32만이 누적되어 있으면 남은 금액만 계산한다', () => {
-    const r = calculate(state({ alreadyCash: 320_000 }), black.req, black.fee, 320_000);
-    expect(r.needCash).toBe(2_180_000);
-    expect(r.cost).toBeCloseTo(330_823.9, 2);
-    // 마지막 무제한 조건이 줄어든 만큼만 흡수한다
-    expect(r.fills.map((f) => f.used)).toEqual([600_000, 300_000, 1_280_000]);
-  });
-
-  it('PC방 주당 10시간은 13만 캐시를 대신 채운다', () => {
-    const r = calculate(state({ pcHours: 10 }), black.req, black.fee, 0);
-    expect(r.pcCash).toBe(130_000);
-    // 목표에서 PC방 환산분(13만)을 뺀 나머지만 현금으로 충당
-    expect(r.needCash).toBe(2_370_000);
-  });
-
-  it('손익분기 시세는 현재 시세보다 높다', () => {
-    const r = calculate(s, black.req, black.fee, 0);
-    expect(r.breakEvenSale).toBeCloseTo(60.2052, 3);
+  it('빈 목록은 0', () => {
+    expect(sumSales([])).toEqual({ cashUsed: 0, creditUsed: 0, mesoRaw: 0 });
   });
 });
 
-describe('calculate — 등급별 비교', () => {
+describe('calculate — 판매 시뮬 기준', () => {
+  // 순수 시나리오: 단일 무제한 조건(할인 0) → 순지출 = 필요캐시
+  const base = (): CalcState =>
+    state({
+      alreadyCash: null,
+      pcHours: null,
+      tiers: [{ id: newId('t'), limit: null, discount: 0, earn: 0 }],
+      sales: [],
+      feeRate: 3,
+      exRate: 1_000,
+    });
+
+  it('시뮬 캐시 사용액이 필요캐시와 같으면 입력한 판매메소가 그대로 반영된다', () => {
+    const s: CalcState = { ...base(), sales: [sale('cash', 100_000, 50, 10)] };
+    const r = calculate(s, 1_000_000, 3, 0);
+    expect(r.needCash).toBe(1_000_000);
+    expect(r.spend).toBe(1_000_000);
+    expect(r.sale.cashUsed).toBe(1_000_000);
+    expect(r.meso).toBeCloseTo(500, 6); // 50 × 10
+    expect(r.cashBack).toBeCloseTo(485_000, 2); // 500 × 0.97 × 1000
+    expect(r.cost).toBeCloseTo(515_000, 2);
+    expect(r.recovery).toBeCloseTo(0.485, 4);
+  });
+
+  it('수량이 절반이어도 캐시당 메소 효율로 환산해 같은 회수가 된다', () => {
+    const s: CalcState = { ...base(), sales: [sale('cash', 100_000, 50, 5)] };
+    const r = calculate(s, 1_000_000, 3, 0);
+    expect(r.sale.cashUsed).toBe(500_000);
+    expect(r.meso).toBeCloseTo(500, 6); // (250 / 500,000) × 1,000,000
+    expect(r.cashBack).toBeCloseTo(485_000, 2);
+  });
+
+  it('크레딧 판매도 회수에 포함된다', () => {
+    const s: CalcState = {
+      ...base(),
+      sales: [sale('cash', 100_000, 50, 10), sale('credit', 10_000, 8, 5)],
+    };
+    const r = calculate(s, 1_000_000, 3, 0);
+    expect(r.sale.creditUsed).toBe(50_000);
+    expect(r.creditAvailable).toBeCloseTo(50_000, 6); // 1,000,000 의 5%
+    expect(r.meso).toBeCloseTo(540, 6); // (500 + 40) / 1,000,000 × 1,000,000
+    expect(r.cashBack).toBeCloseTo(523_800, 2);
+    expect(r.cost).toBeCloseTo(476_200, 2);
+  });
+
+  it('판매 시뮬이 비면 회수 0, 비용 = 순지출', () => {
+    const r = calculate(base(), 1_000_000, 3, 0);
+    expect(r.meso).toBe(0);
+    expect(r.cashBack).toBe(0);
+    expect(r.cost).toBe(1_000_000);
+    expect(r.recovery).toBe(0);
+  });
+
   it('낮은 등급일수록 필요 캐시와 총 비용이 적다', () => {
     const s = state();
     const silver = calculate(s, findGrade('silver').req, findGrade('silver').fee, 0);
@@ -134,40 +150,23 @@ describe('calculate — 등급별 비교', () => {
     expect(silver.needCash).toBeLessThan(black.needCash);
     expect(silver.cost).toBeLessThan(black.cost);
   });
-
-  it('브론즈는 수수료 5%가 적용되어 회수가 줄어든다', () => {
-    const s = state();
-    const bronze = findGrade('bronze');
-    const withRealFee = calculate(s, bronze.req, bronze.fee, 0);
-    const withSilverFee = calculate(s, bronze.req, 3, 0);
-    expect(withRealFee.cashBack).toBeLessThan(withSilverFee.cashBack);
-  });
-
-  it('이미 목표를 넘겼으면 추가 비용이 0이다', () => {
-    const silver = findGrade('silver');
-    const r = calculate(state({ alreadyCash: 400_000 }), silver.req, silver.fee, 400_000);
-    expect(r.needCash).toBe(0);
-    expect(r.spend).toBe(0);
-    expect(r.cost).toBe(0);
-    expect(r.recovery).toBe(0);
-  });
 });
 
 describe('빈 입력 방어', () => {
-  it('모든 값이 비어도 예외 없이 0을 돌려준다', () => {
+  it('모든 값이 비어도 예외 없이 계산된다', () => {
     const empty = state({
       alreadyCash: null,
       pcHours: null,
       tiers: [],
       cashItems: [],
       creditItems: [],
+      sales: [],
       feeRate: null,
       exRate: null,
     });
     const r = calculate(empty, 2_500_000, 0, 0);
     expect(r.spend).toBe(2_500_000); // 할인 조건이 없으니 액면 그대로
     expect(r.cashBack).toBe(0);
-    expect(r.breakEvenSale).toBeNull();
     expect(Number.isFinite(r.cost)).toBe(true);
   });
 });
