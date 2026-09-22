@@ -98,8 +98,8 @@ export default function App() {
           onChange={(v) => patch({ exRate: v })}
         />
         <InlineField
-          label="판매금 수령 수수료"
-          hint="등급에 따라 자동 설정 · 직접 수정 가능 (보통 3%)"
+          label="경매장 수수료"
+          hint="기본 5% · MVP 실버 이상이거나 PC방에서 수령 시 3%"
           value={state.feeRate}
           onChange={(v) => patch({ feeRate: v })}
         />
@@ -202,8 +202,8 @@ export default function App() {
         <GradeCompareTable state={state} alreadyCash={alreadyCash} current={state.grade} />
         <div className="note">
           추가 비용은 누적된 캐시와 PC방 환산분을 뺀 나머지만 계산한 값입니다. 유지 비용은 그
-          등급을 계속 유지할 때 드는 13주 평균입니다. 각 등급의 기본 옥션 수수료(브론즈 5% · 실버
-          이상 3%)를 적용했습니다.
+          등급을 계속 유지할 때 드는 13주 평균입니다. 입력한 경매장 수수료를 모든 등급에 똑같이
+          적용했습니다.
         </div>
       </Card>
 

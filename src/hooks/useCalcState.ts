@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createDefaultState, emptyItem, newId } from '../lib/defaults';
-import { findGrade } from '../lib/grades';
 import { clearState, loadState, saveState } from '../lib/storage';
 import type { CalcState, CashTier, GradeKey, ItemRow, SaleRow } from '../lib/types';
 
@@ -22,9 +21,9 @@ export function useCalcState() {
     setState((prev) => ({ ...prev, ...p }));
   }, []);
 
-  /** 등급을 바꾸면 그 등급의 기본 옥션 수수료로 함께 맞춘다 */
+  // 수수료는 등급이 아니라 수령 방식(실버 이상·PC방)에 달렸으므로, 등급을 바꿔도 건드리지 않는다.
   const setGrade = useCallback((grade: GradeKey) => {
-    setState((prev) => ({ ...prev, grade, feeRate: findGrade(grade).fee }));
+    setState((prev) => ({ ...prev, grade }));
   }, []);
 
   const patchTier = useCallback((id: string, p: Partial<CashTier>) => {

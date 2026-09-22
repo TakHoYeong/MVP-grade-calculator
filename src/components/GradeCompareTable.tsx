@@ -1,4 +1,4 @@
-import { calculate } from '../lib/calc';
+import { calculate, n } from '../lib/calc';
 import { GRADES, WEEKS, WEEKS_PER_MONTH } from '../lib/grades';
 import { int, manwon, won } from '../lib/format';
 import type { CalcState, GradeKey } from '../lib/types';
@@ -17,6 +17,8 @@ const COLS = 'minmax(64px, 0.9fr) 0.7fr 1fr 1.2fr 1fr 1fr';
  * 회수에서 불리한 점까지 드러난다.
  */
 export function GradeCompareTable({ state, alreadyCash, current }: Props) {
+  // 수수료는 등급이 아니라 수령 방식에 달렸으므로, 모든 등급에 입력한 값을 그대로 쓴다.
+  const fee = n(state.feeRate);
   return (
     <div className="rows" style={{ ['--cols' as string]: COLS }}>
       <div className="head-row" aria-hidden="true">
@@ -29,8 +31,8 @@ export function GradeCompareTable({ state, alreadyCash, current }: Props) {
       </div>
 
       {GRADES.map((g) => {
-        const ahead = calculate(state, g.req, g.fee, alreadyCash);
-        const upkeep = calculate(state, g.req, g.fee, 0);
+        const ahead = calculate(state, g.req, fee, alreadyCash);
+        const upkeep = calculate(state, g.req, fee, 0);
         const done = ahead.needCash <= 0;
         const pillClass = done ? 'done' : ahead.cost <= 0 ? 'gain' : '';
 
