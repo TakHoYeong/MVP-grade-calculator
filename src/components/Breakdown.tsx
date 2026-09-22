@@ -27,7 +27,7 @@ export function Breakdown({ grade, result, alreadyCash, feeRate }: Props) {
     <div>
       <Group label="목표 채우기" />
       <Row k="목표 등급 기준" v={`${int(grade.req)}캐시`} />
-      <Row k="이미 누적된 캐시" v={`${int(alreadyCash)}캐시`} />
+      <Row k="누적된 캐시" v={`${int(alreadyCash)}캐시`} />
       <Row k="PC방 환산 캐시 (13주)" v={`${int(result.pcCash)}캐시`} />
       <Row k="현금으로 살 캐시" v={`${int(result.needCash)}캐시`} />
 

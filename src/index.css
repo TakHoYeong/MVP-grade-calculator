@@ -333,13 +333,22 @@ img {
   margin-left: 2px;
 }
 
+.result-sub-wrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgb(244 251 249 / 16%);
+}
+
 .result-sub {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 5px 12px;
-  margin-top: 10px;
-  padding-top: 9px;
-  border-top: 1px solid rgb(244 251 249 / 16%);
+  flex: 1;
+  min-inline-size: 0;
   font-size: 11.5px;
   color: #cfeae3;
 }
@@ -348,6 +357,158 @@ img {
   color: #f4fbf9;
   font-weight: 700;
   margin-left: 4px;
+}
+
+.result-detail-btn {
+  flex-shrink: 0;
+  margin-left: auto;
+  border: 1px solid rgb(244 251 249 / 45%);
+  background: transparent;
+  color: #f4fbf9;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.result-detail-btn:hover {
+  background: rgb(244 251 249 / 14%);
+}
+
+.result-detail-btn:focus-visible {
+  outline: 2px solid #f4fbf9;
+  outline-offset: 2px;
+}
+
+/* ---------- 모달 ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgb(0 0 0 / 50%);
+}
+
+.modal-panel {
+  inline-size: 100%;
+  max-inline-size: 520px;
+  max-block-size: 85vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 16px 18px 20px;
+  box-shadow: 0 16px 48px rgb(0 0 0 / 28%);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.modal-title {
+  margin: 0;
+  font-family: 'Gothic A1', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.modal-close {
+  flex-shrink: 0;
+  inline-size: 34px;
+  block-size: 34px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 22px;
+  line-height: 1;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  background: var(--warn-soft);
+  color: var(--danger);
+}
+
+.modal-close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.modal-desc {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btn-ghost {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-ghost:hover {
+  background: var(--surface-alt);
+}
+
+.btn-danger {
+  border: 1px solid var(--danger);
+  background: var(--danger);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  filter: brightness(0.94);
+}
+
+/* 카드 헤더 우측 액션 (초기화 버튼 등) */
+.card-head-right {
+  margin-left: auto;
+}
+
+.danger-btn {
+  border: 1px solid var(--danger);
+  background: transparent;
+  color: var(--danger);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.danger-btn:hover {
+  background: var(--warn-soft);
 }
 
 .badge {

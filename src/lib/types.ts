@@ -37,9 +37,6 @@ export interface ItemRow {
   saleMeso: number | null;
 }
 
-/** 아이템 비교표 종류 */
-export type ItemKind = 'cash' | 'credit';
-
 /** 판매 시뮬레이션 재화 종류 — 캐시로 산 아이템 / 크레딧으로 산 아이템 */
 export type SaleKind = 'cash' | 'credit';
 

@@ -1,4 +1,4 @@
-import type { CalcState, ItemRow, SaleRow } from './types';
+import type { CalcState, ItemRow } from './types';
 
 /** 행 추가·초기화에 쓰는 id 생성기 */
 let seq = 0;
@@ -9,10 +9,6 @@ export function newId(prefix = 'r'): string {
 
 export function emptyItem(): ItemRow {
   return { id: newId('i'), name: '', unitCost: null, saleMeso: null };
-}
-
-export function emptySale(kind: SaleRow['kind'] = 'cash'): SaleRow {
-  return { id: newId('s'), kind, unitCost: null, saleMeso: null, qty: null };
 }
 
 /**
@@ -32,7 +28,8 @@ export function createDefaultState(): CalcState {
     cashItems: [{ id: newId('i'), name: '캐치! 티니핑 10개세트', unitCost: 99_000, saleMeso: 49.8 }],
     creditItems: [{ id: newId('i'), name: '프라임 에디셔널큐브', unitCost: 20_000, saleMeso: 17 }],
     sales: [
-      { id: newId('s'), kind: 'cash', unitCost: 99_000, saleMeso: 49.8, qty: 25 },
+      // 목표(250만)를 넘기려면 99,000원 아이템 26개(=2,574,000) 필요 — 25개는 2,475,000으로 미달
+      { id: newId('s'), kind: 'cash', unitCost: 99_000, saleMeso: 49.8, qty: 26 },
       { id: newId('s'), kind: 'credit', unitCost: 20_000, saleMeso: 17, qty: 6 },
     ],
     feeRate: 3,

@@ -8,10 +8,12 @@ interface Props {
   result: CalcResult;
   /** 누적 0 기준 = 계속 유지할 때의 비용 */
   maintenance: CalcResult;
+  /** 상세 내역 모달 열기 */
+  onDetail: () => void;
 }
 
 /** 스크롤 중에도 화면에 남는 결과 요약 */
-export function ResultBar({ grade, result, maintenance }: Props) {
+export function ResultBar({ grade, result, maintenance, onDetail }: Props) {
   return (
     <div className="result-bar">
       <div className="result-top">
@@ -25,21 +27,25 @@ export function ResultBar({ grade, result, maintenance }: Props) {
         <div className="badge">회수율 {pct(result.recovery)}</div>
       </div>
 
-      <div className="result-sub">
-        <div>
-          추가 순지출<b>{won(result.spend)}</b>
+      <div className="result-sub-wrap">
+        <div className="result-sub">
+          <div>
+            추가 순지출<b>{won(result.spend)}</b>
+          </div>
+          <div>
+            환전 회수<b>{won(result.cashBack)}</b>
+          </div>
+          <div>
+            유지 주당<b>{won(maintenance.cost / WEEKS)}</b>
+          </div>
+          <div>
+            유지 월<b>{won((maintenance.cost / WEEKS) * WEEKS_PER_MONTH)}</b>
+          </div>
         </div>
-        <div>
-          환전 회수<b>{won(result.cashBack)}</b>
-        </div>
-        <div>
-          유지 주당<b>{won(maintenance.cost / WEEKS)}</b>
-        </div>
-        <div>
-          유지 월<b>{won((maintenance.cost / WEEKS) * WEEKS_PER_MONTH)}</b>
-        </div>
+        <button type="button" className="result-detail-btn" onClick={onDetail}>
+          상세보기
+        </button>
       </div>
-
     </div>
   );
 }

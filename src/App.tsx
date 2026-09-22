@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Breakdown } from './components/Breakdown';
 import { Card } from './components/Card';
 import { GradeCompareTable } from './components/GradeCompareTable';
 import { GradePicker } from './components/GradePicker';
 import { InlineField } from './components/InlineField';
 import { ItemTable } from './components/ItemTable';
+import { Modal } from './components/Modal';
 import { ResultBar } from './components/ResultBar';
 import { SaleSim } from './components/SaleSim';
 import { TargetComposition } from './components/TargetComposition';
@@ -42,20 +43,32 @@ export default function App() {
   );
   const maintenance = useMemo(() => calculate(state, grade.req, fee, 0), [state, grade.req, fee]);
 
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+
   return (
     <div className="wrap">
       <h1 className="page-title">MVP 등급 계산기</h1>
       <p className="lede">
-        목표 등급과 이미 누적된 금액을 넣으면, 앞으로 그 등급을 다는 데 실제로 얼마가 더 드는지
+        목표 등급과 누적된 캐시를 넣으면, 앞으로 그 등급을 다는 데 실제로 얼마가 더 드는지
         계산합니다. 값을 바꾸면 곧바로 다시 계산됩니다.
       </p>
 
       {/* 0단계 */}
-      <Card step={0} title="목표 등급과 현재 상태" desc="등급 기준은 이번 주 포함 최근 13주 누적 넥슨캐시입니다.">
+      <Card
+        step={0}
+        title="목표 등급과 현재 상태"
+        desc="등급 기준은 이번 주 포함 최근 13주 누적 넥슨캐시입니다."
+        headerRight={
+          <button type="button" className="danger-btn" onClick={() => setConfirmReset(true)}>
+            초기화
+          </button>
+        }
+      >
         <GradePicker value={state.grade} onChange={setGrade} />
 
         <InlineField
-          label="이미 누적된 캐시"
+          label="누적된 캐시"
           hint="최근 13주 동안 이미 사용한 넥슨캐시"
           value={state.alreadyCash}
           placeholder="0"
@@ -84,9 +97,20 @@ export default function App() {
           comma
           onChange={(v) => patch({ exRate: v })}
         />
+        <InlineField
+          label="판매금 수령 수수료"
+          hint="등급에 따라 자동 설정 · 직접 수정 가능 (보통 3%)"
+          value={state.feeRate}
+          onChange={(v) => patch({ feeRate: v })}
+        />
       </Card>
 
-      <ResultBar grade={grade} result={result} maintenance={maintenance} />
+      <ResultBar
+        grade={grade}
+        result={result}
+        maintenance={maintenance}
+        onDetail={() => setDetailOpen(true)}
+      />
 
       {/* 1단계 */}
       <Card
@@ -152,21 +176,13 @@ export default function App() {
           onRemove={(id) => removeItem('creditItems', id)}
           onAdd={() => addItem('creditItems')}
         />
-
-        <h3 className="subhead">다. 판매 수수료</h3>
-        <InlineField
-          label="판매금 수령 수수료"
-          hint="등급에 따라 자동 설정 · 직접 수정 가능"
-          value={state.feeRate}
-          onChange={(v) => patch({ feeRate: v })}
-        />
       </Card>
 
       {/* 3단계 */}
       <Card
         step={3}
         title="판매 시뮬레이션"
-        desc="실제로 팔 계획을 그대로 넣어 회수 현금과 실제 비용을 계산합니다. 시장 상황에 맞춰 같은 아이템도 여러 가격대로 나눠 넣으세요."
+        desc="실제로 팔 계획을 그대로 넣어 회수 현금과 실제 비용을 계산합니다."
       >
         <SaleSim
           sales={state.sales}
@@ -185,14 +201,14 @@ export default function App() {
       >
         <GradeCompareTable state={state} alreadyCash={alreadyCash} current={state.grade} />
         <div className="note">
-          추가 비용은 이미 누적된 캐시와 PC방 환산분을 뺀 나머지만 계산한 값입니다. 유지 비용은 그
+          추가 비용은 누적된 캐시와 PC방 환산분을 뺀 나머지만 계산한 값입니다. 유지 비용은 그
           등급을 계속 유지할 때 드는 13주 평균입니다. 각 등급의 기본 옥션 수수료(브론즈 5% · 실버
           이상 3%)를 적용했습니다.
         </div>
       </Card>
 
-      {/* 5단계 */}
-      <Card step={5} title="상세 내역" desc="판매 시뮬레이션 기준으로 계산된 세부 값입니다.">
+      <Modal open={detailOpen} onClose={() => setDetailOpen(false)} title="상세 내역">
+        <p className="modal-desc">판매 시뮬레이션 기준으로 계산된 세부 값입니다.</p>
         <Breakdown grade={grade} result={result} alreadyCash={alreadyCash} feeRate={fee} />
         <div className="note">
           <b>계산에서 빠진 것</b> · 마일리지로 할인받아 결제한 금액은 MVP 누적에 반영되지 않습니다.
@@ -200,10 +216,26 @@ export default function App() {
           금액은 지나간 비용이므로 앞으로의 계산에서 제외됩니다. 대량 판매 시 시세가 밀릴 수 있으니
           판매가는 평균 체결가로 넣으세요.
         </div>
-        <button type="button" className="reset-btn" onClick={reset}>
-          입력값 초기화
-        </button>
-      </Card>
+      </Modal>
+
+      <Modal open={confirmReset} onClose={() => setConfirmReset(false)} title="입력값 초기화">
+        <p className="modal-desc">입력한 값이 모두 기본값으로 돌아갑니다. 정말 초기화할까요?</p>
+        <div className="modal-actions">
+          <button type="button" className="btn-ghost" onClick={() => setConfirmReset(false)}>
+            취소
+          </button>
+          <button
+            type="button"
+            className="btn-danger"
+            onClick={() => {
+              reset();
+              setConfirmReset(false);
+            }}
+          >
+            초기화
+          </button>
+        </div>
+      </Modal>
 
       <footer className="footer">
         모든 시세·조건은 직접 입력한 값 기준이며, 실제 거래 시세와 다를 수 있습니다.

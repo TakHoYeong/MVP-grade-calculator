@@ -36,7 +36,8 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd }: Props) {
   };
 
   const { cashUsed, creditUsed, mesoRaw } = result.sale;
-  const cashDiff = cashUsed - result.needCash;
+  // MVP 는 목표 금액 '이상'을 채워야 달성된다. 근처(부족)면 달성되지 않는다.
+  const shortfall = result.needCash - cashUsed;
   const creditOver = creditUsed > result.creditAvailable;
 
   return (
@@ -158,12 +159,8 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd }: Props) {
       <div className="totals sim-totals">
         <span>
           캐시 사용 <b>{int(cashUsed)}</b> / 목표 {int(result.needCash)}
-          <em className={`sim-tag ${Math.abs(cashDiff) <= result.needCash * 0.01 ? 'ok' : 'warn'}`}>
-            {Math.abs(cashDiff) <= result.needCash * 0.01
-              ? '≈ 일치'
-              : cashDiff < 0
-                ? `${int(-cashDiff)} 부족`
-                : `${int(cashDiff)} 초과`}
+          <em className={`sim-tag ${shortfall > 0 ? 'warn' : 'ok'}`}>
+            {shortfall > 0 ? `${int(shortfall)} 더 필요` : '달성 ✓'}
           </em>
         </span>
         <span>
