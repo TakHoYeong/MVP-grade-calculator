@@ -7,8 +7,6 @@ export interface Grade {
   name: string;
   /** 이번 주 포함 최근 13주 누적 넥슨캐시 기준 */
   req: number;
-  /** 해당 등급의 기본 메이플 옥션 판매 수수료(%) */
-  fee: number;
 }
 
 /**

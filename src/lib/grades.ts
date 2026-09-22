@@ -6,15 +6,15 @@ import type { Grade, GradeKey } from './types';
  * https://maplestory.nexon.com/guide/n23gameinformation/articles/425
  *
  * 게임 사양이 바뀌면 이 배열만 고치면 된다.
- * fee 는 메이플 옥션 판매 수수료(%) — 실버 이상 3%, 그 아래는 기본 5%.
+ * 경매장 수수료는 등급이 아니라 수령 방식(실버 이상·PC방)에 달렸으므로 여기서 다루지 않는다.
  */
 export const GRADES: readonly Grade[] = [
-  { key: 'bronze', name: '브론즈', req: 150_000, fee: 5 },
-  { key: 'silver', name: '실버', req: 300_000, fee: 3 },
-  { key: 'gold', name: '골드', req: 600_000, fee: 3 },
-  { key: 'diamond', name: '다이아', req: 900_000, fee: 3 },
-  { key: 'red', name: '레드', req: 1_500_000, fee: 3 },
-  { key: 'black', name: '블랙', req: 2_500_000, fee: 3 },
+  { key: 'bronze', name: '브론즈', req: 150_000 },
+  { key: 'silver', name: '실버', req: 300_000 },
+  { key: 'gold', name: '골드', req: 600_000 },
+  { key: 'diamond', name: '다이아', req: 900_000 },
+  { key: 'red', name: '레드', req: 1_500_000 },
+  { key: 'black', name: '블랙', req: 2_500_000 },
 ] as const;
 
 /** 프리미엄PC방: 6분당 100캐시 = 시간당 1,000캐시 */

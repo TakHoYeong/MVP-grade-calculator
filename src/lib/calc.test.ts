@@ -145,8 +145,8 @@ describe('calculate — 판매 시뮬 기준', () => {
 
   it('낮은 등급일수록 필요 캐시와 총 비용이 적다', () => {
     const s = state();
-    const silver = calculate(s, findGrade('silver').req, findGrade('silver').fee, 0);
-    const black = calculate(s, findGrade('black').req, findGrade('black').fee, 0);
+    const silver = calculate(s, findGrade('silver').req, 3, 0);
+    const black = calculate(s, findGrade('black').req, 3, 0);
     expect(silver.needCash).toBeLessThan(black.needCash);
     expect(silver.cost).toBeLessThan(black.cost);
   });
