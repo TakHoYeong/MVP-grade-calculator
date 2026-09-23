@@ -12,6 +12,8 @@
   --surface: #fbfaf6;
   --surface-alt: #ece7da;
   --border: #ddd8c9;
+  /* 편집 느낌의 얇은 경계선 — border 보다 조금 더 진하게 */
+  --rule: #cec7b4;
 
   /* 텍스트 */
   --text: #2b2a26;
@@ -21,6 +23,9 @@
   --accent: #1f6f63;
   --accent-strong: #134b44;
   --accent-soft: #deefea;
+  /* 보조 포인트(원장 눈금·선택 표시) — 목표막대 PC색과 같은 황토색 계열 */
+  --gold: #c19256;
+  --gold-soft: #efe4cf;
 
   /* 목표 구성 막대 */
   --seg-already: #8fbdb5;
@@ -33,7 +38,12 @@
   --danger: #9c4433;
 
   --shadow: 0 1px 2px rgb(43 42 38 / 4%), 0 4px 14px rgb(43 42 38 / 6%);
-  --radius: 14px;
+  --radius: 12px;
+
+  /* 글꼴: 표제는 명조(세리프), 소제목은 고딕, 본문은 산세리프 */
+  --font-body: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-head: 'Gothic A1', 'Noto Sans KR', sans-serif;
+  --font-serif: 'Noto Serif KR', 'Nanum Myeongjo', serif;
 
   /* 데스크톱에서 각 행이 펼쳐질 컬럼 구성. 컴포넌트가 덮어쓴다. */
   --cols: 1fr;
@@ -51,10 +61,15 @@ body {
 
 body {
   color: var(--text);
-  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-body);
   font-size: 14px;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
+  /* 종이 결을 아주 옅게: 위쪽만 미세하게 밝은 크림, 아래로 갈수록 기본 톤 */
+  background:
+    radial-gradient(1200px 480px at 50% -280px, #f8f5ee 0%, rgb(248 245 238 / 0%) 70%),
+    var(--bg);
+  background-attachment: fixed;
   padding-top: env(safe-area-inset-top, 0);
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
@@ -84,65 +99,142 @@ img {
   padding-block: 24px 56px;
 }
 
-.page-title {
-  font-family: 'Gothic A1', 'Noto Sans KR', sans-serif;
-  font-weight: 800;
-  font-size: 21px;
-  letter-spacing: -0.01em;
-  margin: 0 0 6px;
+/* ---------- 표제(masthead) ---------- */
+.masthead {
+  margin: 4px 0 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+}
+
+/* 표제 아래 경계선에 얹힌 짧은 황토색 눈금 — 원장 느낌의 디테일 */
+.masthead::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  inline-size: 52px;
+  block-size: 2px;
+  background: var(--gold);
+}
+
+.masthead-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.kicker-tick {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 2px;
+  background: var(--accent);
+  flex: none;
+}
+
+.masthead-title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 30px;
+  letter-spacing: -0.015em;
+  line-height: 1.12;
+  margin: 0 0 10px;
   color: var(--accent-strong);
 }
 
-.lede {
+.masthead-lede {
+  max-inline-size: 52ch;
   color: var(--text-muted);
-  font-size: 13px;
-  margin: 0 0 18px;
-  line-height: 1.6;
+  font-size: 13.5px;
+  margin: 0;
+  line-height: 1.7;
 }
 
-/* ---------- 카드 ---------- */
+/* ---------- 카드(섹션) ---------- */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 16px;
-  margin-bottom: 14px;
-  box-shadow: var(--shadow);
+  padding: 18px 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 0 rgb(43 42 38 / 3%);
 }
 
 .card-head {
   display: flex;
   align-items: center;
-  gap: 9px;
-  margin-bottom: 3px;
+  gap: 10px;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--rule);
 }
 
+/* 워크플로 단계: 사각형 안의 번호 */
 .step-no {
-  inline-size: 22px;
-  block-size: 22px;
+  inline-size: 24px;
+  block-size: 24px;
   border-radius: 7px;
   background: var(--accent);
   color: #fff;
-  font-size: 12px;
+  font-family: var(--font-head);
+  font-size: 12.5px;
   font-weight: 800;
+  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   flex: none;
 }
 
+/* 설정 카드 등: 섹션의 역할을 나타내는 분류 라벨. 표제 키커와 같은 눈금 모티프. */
+.step-tag {
+  position: relative;
+  flex: none;
+  align-self: center;
+  padding: 3px 9px 3px 20px;
+  border-radius: 6px;
+  background: var(--gold-soft);
+  font-family: var(--font-head);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--accent-strong);
+  white-space: nowrap;
+}
+
+.step-tag::before {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 2px;
+  background: var(--gold);
+}
+
 .card h2 {
-  font-family: 'Gothic A1', sans-serif;
-  font-size: 15px;
+  font-family: var(--font-head);
+  font-size: 16px;
   font-weight: 700;
+  letter-spacing: -0.01em;
   margin: 0;
+  flex: 1;
+  min-inline-size: 0;
 }
 
 .card-desc {
   font-size: 12.5px;
   color: var(--text-muted);
-  margin: 0 0 14px 31px;
-  line-height: 1.55;
+  margin: -4px 0 16px;
+  line-height: 1.65;
 }
 
 .subhead {
@@ -172,39 +264,54 @@ img {
 }
 
 .grade-chip {
-  border: 1.5px solid var(--border);
-  background: var(--surface-alt);
-  border-radius: 10px;
-  padding: 10px 4px;
-  min-block-size: 48px;
+  position: relative;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 9px;
+  padding: 11px 4px;
+  min-block-size: 50px;
   cursor: pointer;
   text-align: center;
   font-family: inherit;
   color: var(--text);
-  transition: background 0.12s, border-color 0.12s;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
 
 .grade-chip:hover {
   border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .grade-chip .gn {
   display: block;
   font-size: 13px;
   font-weight: 700;
-  font-family: 'Gothic A1', sans-serif;
+  font-family: var(--font-head);
 }
 
 .grade-chip .gq {
   display: block;
   font-size: 10.5px;
   color: var(--text-muted);
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .grade-chip[aria-pressed='true'] {
   background: var(--accent);
   border-color: var(--accent-strong);
+}
+
+/* 선택된 등급: 아래에 황토색 눈금으로 강조 */
+.grade-chip[aria-pressed='true']::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  transform: translateX(-50%);
+  inline-size: 26px;
+  block-size: 3px;
+  border-radius: 2px;
+  background: var(--gold);
 }
 
 .grade-chip[aria-pressed='true'] .gn {
@@ -222,9 +329,9 @@ img {
 
 /* ---------- 목표 구성 막대 ---------- */
 .comp {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px dashed var(--border);
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
 }
 
 .comp-head {
@@ -300,9 +407,11 @@ img {
   background: var(--accent-strong);
   color: #f4fbf9;
   border-radius: var(--radius);
-  padding: 14px 16px;
-  box-shadow: var(--shadow);
-  margin-bottom: 14px;
+  padding: 15px 18px;
+  box-shadow: 0 6px 20px rgb(19 75 68 / 18%);
+  margin-bottom: 16px;
+  /* 상단에 얇은 황토색 눈금 */
+  border-top: 2px solid var(--gold);
 }
 
 .result-top {
@@ -314,23 +423,26 @@ img {
 }
 
 .result-label {
-  font-size: 11.5px;
-  color: #bfe3da;
-  font-weight: 500;
+  font-size: 11px;
+  color: #a9d3c9;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-bottom: 3px;
 }
 
 .result-figure {
-  font-family: 'Gothic A1', sans-serif;
-  font-weight: 800;
-  font-size: 27px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 30px;
   letter-spacing: -0.01em;
-  line-height: 1.15;
+  line-height: 1.1;
 }
 
 .result-figure small {
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 700;
-  margin-left: 2px;
+  margin-left: 3px;
 }
 
 .result-sub-wrap {
@@ -416,9 +528,10 @@ img {
 
 .modal-title {
   margin: 0;
-  font-family: 'Gothic A1', sans-serif;
-  font-size: 18px;
-  font-weight: 800;
+  font-family: var(--font-serif);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--accent-strong);
 }
 
 .modal-close {
@@ -492,6 +605,7 @@ img {
 /* 카드 헤더 우측 액션 (초기화 버튼 등) */
 .card-head-right {
   margin-left: auto;
+  align-self: center;
 }
 
 .danger-btn {
@@ -740,9 +854,9 @@ input.txt {
   gap: 6px 16px;
   font-size: 12.5px;
   color: var(--text-muted);
-  padding-top: 11px;
-  border-top: 1px dashed var(--border);
-  margin-top: 12px;
+  padding-top: 13px;
+  border-top: 1px solid var(--rule);
+  margin-top: 14px;
 }
 
 .totals b {
@@ -1104,8 +1218,10 @@ input.txt {
 }
 
 .bd-row.is-total .v {
+  font-family: var(--font-serif);
+  font-weight: 700;
   color: var(--accent-strong);
-  font-size: 15px;
+  font-size: 17px;
 }
 
 /* ---------- 안내 박스 ---------- */
@@ -1136,8 +1252,10 @@ input.txt {
   text-align: center;
   font-size: 11.5px;
   color: var(--text-muted);
-  margin-top: 22px;
-  line-height: 1.7;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+  line-height: 1.8;
 }
 
 .footer a {
@@ -1292,8 +1410,12 @@ input.txt {
     padding-block: 30px 64px;
   }
 
-  .page-title {
-    font-size: 23px;
+  .masthead-title {
+    font-size: 36px;
+  }
+
+  .masthead-lede {
+    font-size: 14px;
   }
 
   .grade-grid {
@@ -1301,7 +1423,7 @@ input.txt {
   }
 
   .result-figure {
-    font-size: 30px;
+    font-size: 33px;
   }
 
   .result-sub {

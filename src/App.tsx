@@ -63,15 +63,21 @@ export default function App() {
 
   return (
     <div className="wrap">
-      <h1 className="page-title">MVP 등급 계산기</h1>
-      <p className="lede">
-        목표 등급과 누적된 캐시를 넣으면, 앞으로 그 등급을 다는 데 실제로 얼마가 더 드는지
-        계산합니다. 값을 바꾸면 곧바로 다시 계산됩니다.
-      </p>
+      <header className="masthead">
+        <p className="masthead-kicker">
+          <span className="kicker-tick" aria-hidden="true" />
+          메이플스토리 · 넥슨캐시
+        </p>
+        <h1 className="masthead-title">MVP 등급 계산기</h1>
+        <p className="masthead-lede">
+          목표 등급과 지금까지 쌓인 캐시를 넣으면, 그 등급을 다는 데 앞으로 실제로 드는 현금을
+          계산해 드립니다. 값을 고치면 곧바로 다시 계산됩니다.
+        </p>
+      </header>
 
       {/* 0단계 */}
       <Card
-        step={0}
+        step="설정"
         title="목표 등급과 현재 상태"
         desc="등급 기준은 이번 주 포함 최근 13주 누적 넥슨캐시입니다."
         headerRight={
@@ -167,7 +173,7 @@ export default function App() {
       <Card
         step={2}
         title="판매 효율 비교"
-        desc="어떤 아이템이 유리한지 눈으로 비교만 하는 참고용입니다. 실제 회수·비용 계산은 3번 판매 시뮬레이션에서 합니다."
+        desc="어떤 아이템이 유리한지 눈으로 비교만 하는 참고용입니다. 실제 회수·비용 계산은 아래 판매 시뮬레이션에서 합니다."
       >
         <h3 className="subhead">
           가. 캐시아이템<span className="tag">캐시로 구매 → 메소 판매</span>
@@ -205,9 +211,9 @@ export default function App() {
           className="import-btn"
           onClick={importItemsToSales}
           disabled={importableCount === 0}
-          title={importableCount === 0 ? '2번 효율표에 새로 담을 항목이 없습니다' : undefined}
+          title={importableCount === 0 ? '효율표에 새로 담을 항목이 없습니다' : undefined}
         >
-          2번 효율표에서 담기{importableCount > 0 ? ` (${importableCount})` : ''}
+          효율표에서 담기{importableCount > 0 ? ` (${importableCount})` : ''}
         </button>
         <SaleSim
           sales={state.sales}
