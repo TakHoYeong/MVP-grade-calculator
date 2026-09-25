@@ -14,13 +14,6 @@ interface Props {
 // 넓은 화면에서 한 줄에 놓이는 열 너비: 충전 금액 | 할인율 | 적립률 | 사용액 | 결제액 | 삭제
 const TCOLS = 'minmax(94px, 1.4fr) 70px 70px minmax(70px, 0.9fr) minmax(88px, 1.1fr) 32px';
 
-// 자주 쓰는 충전 조건 예시. 누르면 바로 한 줄이 추가되고, 값은 실제에 맞게 고쳐 쓴다.
-const TIER_PRESETS: { label: string; init: Partial<Pick<CashTier, 'limit' | 'discount' | 'earn'>> }[] = [
-  { label: '문화상품권 6% 할인', init: { discount: 6, earn: 0 } },
-  { label: '카드 적립 1%', init: { discount: 0, earn: 1 } },
-  { label: '정가(할인 없음)', init: { discount: 0, earn: 0 } },
-];
-
 /**
  * 넥슨캐시 구매 조건.
  * 위 입력 폼에서 충전 금액·할인율·적립률을 넣고 '추가'하면 아래 리스트에 쌓인다.
@@ -41,16 +34,6 @@ export function TierTable({ tiers, fills, onPatch, onRemove, onAdd }: Props) {
 
   return (
     <>
-      {/* 자주 쓰는 조건 빠른 추가 */}
-      <div className="preset-row">
-        <span className="preset-lbl">빠른 추가</span>
-        {TIER_PRESETS.map((p) => (
-          <button key={p.label} type="button" className="preset-chip" onClick={() => onAdd(p.init)}>
-            {p.label}
-          </button>
-        ))}
-      </div>
-
       {/* 조건 입력 폼 */}
       <div className="tier-add">
         <NumberField
