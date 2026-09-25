@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { calculate, efficiency, fillTiers, n, sumSales } from './calc';
 import { createDefaultState, newId } from './defaults';
 import { findGrade } from './grades';
-import type { CalcState, ItemRow, SaleRow } from './types';
+import type { CalcState, SaleRow } from './types';
 
 /** 기본 상태 위에 일부만 덮어쓴다 */
 function state(patch: Partial<CalcState> = {}): CalcState {
   return { ...createDefaultState(), ...patch };
 }
-function item(unitCost: number | null, saleMeso: number | null, name = ''): ItemRow {
-  return { id: newId('test'), name, unitCost, saleMeso };
+function item(unitCost: number | null, saleMeso: number | null) {
+  return { unitCost, saleMeso };
 }
 function sale(
   kind: SaleRow['kind'],
@@ -119,10 +119,24 @@ describe('calculate — 판매 시뮬 기준', () => {
     expect(r.recovery).toBeCloseTo(0.485, 4);
   });
 
-  it('수량이 절반이어도 캐시당 메소 효율로 환산해 같은 회수가 된다', () => {
+  it('수량이 절반이면 회수도 절반 (입력한 계획 그대로)', () => {
     const s: CalcState = { ...base(), sales: [sale('cash', 100_000, 50, 5)] };
     const r = calculate(s, 1_000_000, 3, 0);
     expect(r.sale.cashUsed).toBe(500_000);
+    expect(r.meso).toBeCloseTo(250, 6); // 50 × 5, 스케일 없이 입력 그대로
+    expect(r.cashBack).toBeCloseTo(242_500, 2); // 250 × 0.97 × 1000
+  });
+
+  it('개수를 늘리면 회수도 비례해 늘어난다', () => {
+    const one = calculate({ ...base(), sales: [sale('cash', 100_000, 50, 1)] }, 1_000_000, 3, 0);
+    const ten = calculate({ ...base(), sales: [sale('cash', 100_000, 50, 10)] }, 1_000_000, 3, 0);
+    expect(ten.cashBack).toBeCloseTo(one.cashBack * 10, 2);
+  });
+
+  it('scaleRecovery 옵션은 효율을 목표 캐시에 맞춰 환산한다 (등급 비교표용)', () => {
+    // 절반만 팔아도 목표 전체를 되판다고 가정 → 회수는 목표 기준으로 환산된다
+    const s: CalcState = { ...base(), sales: [sale('cash', 100_000, 50, 5)] };
+    const r = calculate(s, 1_000_000, 3, 0, { scaleRecovery: true });
     expect(r.meso).toBeCloseTo(500, 6); // (250 / 500,000) × 1,000,000
     expect(r.cashBack).toBeCloseTo(485_000, 2);
   });
@@ -163,8 +177,6 @@ describe('빈 입력 방어', () => {
       alreadyCash: null,
       pcHours: null,
       tiers: [],
-      cashItems: [],
-      creditItems: [],
       sales: [],
       feeRate: null,
       exRate: null,

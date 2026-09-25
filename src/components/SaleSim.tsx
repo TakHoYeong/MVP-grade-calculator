@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NumberField } from './NumberField';
-import { n } from '../lib/calc';
-import { eok, int, won } from '../lib/format';
+import { efficiency, n } from '../lib/calc';
+import { eok, fixed, int, won } from '../lib/format';
 import type { CalcResult, SaleKind, SaleRow } from '../lib/types';
 
 interface Props {
@@ -12,8 +12,15 @@ interface Props {
   onAdd: (init?: Partial<Pick<SaleRow, 'kind' | 'unitCost' | 'saleMeso' | 'qty'>>) => void;
 }
 
-// 넓은 화면 한 줄: 종류 | 가격 | 판매가(억) | 개수 | 판매메소 | 삭제
-const SCOLS = '76px minmax(88px, 1.3fr) minmax(80px, 1fr) 58px minmax(80px, 1fr) 32px';
+// 넓은 화면 한 줄: 종류 | 가격 | 판매가(억) | 개수 | 판매메소 | 효율 | 삭제
+const SCOLS = '72px minmax(82px, 1.2fr) minmax(74px, 1fr) 48px minmax(74px, 1fr) 56px 32px';
+
+// 자주 쓰는 판매 항목 예시. 종류·가격만 채워지고, 판매가(시세)·개수는 직접 넣는다.
+const SALE_PRESETS: { label: string; init: Partial<Pick<SaleRow, 'kind' | 'unitCost'>> }[] = [
+  { label: '캐시 99,000', init: { kind: 'cash', unitCost: 99_000 } },
+  { label: '캐시 30,000', init: { kind: 'cash', unitCost: 30_000 } },
+  { label: '크레딧 20,000', init: { kind: 'credit', unitCost: 20_000 } },
+];
 
 const costLabel = (kind: SaleKind) => (kind === 'credit' ? '필요크레딧' : '가격(원)');
 
@@ -40,8 +47,29 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd }: Props) {
   const shortfall = result.needCash - cashUsed;
   const creditOver = creditUsed > result.creditAvailable;
 
+  // 같은 종류끼리 가장 효율 좋은 줄에 ★ (효율 단위가 종류마다 달라 종류별로 비교한다)
+  const bestEffOf = (k: SaleKind) =>
+    sales.reduce((m, s) => {
+      if (s.kind !== k) return m;
+      const e = efficiency(s);
+      return e !== null && e > m ? e : m;
+    }, 0);
+  const bestCash = bestEffOf('cash');
+  const bestCredit = bestEffOf('credit');
+  const countOf = (k: SaleKind) => sales.filter((s) => s.kind === k).length;
+
   return (
     <>
+      {/* 자주 쓰는 항목 빠른 추가 */}
+      <div className="preset-row">
+        <span className="preset-lbl">빠른 추가</span>
+        {SALE_PRESETS.map((p) => (
+          <button key={p.label} type="button" className="preset-chip" onClick={() => onAdd(p.init)}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+
       {/* 판매 입력 폼 */}
       <div className="sim-add">
         <label className="sim-kind-wrap">
@@ -94,6 +122,7 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd }: Props) {
           <span>판매가(억)</span>
           <span>개수</span>
           <span>판매메소</span>
+          <span>효율</span>
           <span />
         </div>
 
@@ -103,6 +132,9 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd }: Props) {
 
         {sales.map((s) => {
           const meso = n(s.saleMeso) * n(s.qty);
+          const eff = efficiency(s);
+          const best = s.kind === 'cash' ? bestCash : bestCredit;
+          const isBest = eff !== null && eff > 0 && eff === best && countOf(s.kind) > 1;
           return (
             <div key={s.id} className="sim-item">
               <label className="sim-kind-wrap">
@@ -140,6 +172,23 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd }: Props) {
               <div className="sim-cell">
                 <span className="sim-cap">판매메소</span>
                 <div className="calc-value">{meso > 0 ? `${eok(meso)}억` : '-'}</div>
+              </div>
+              <div className="sim-cell">
+                <span className="sim-cap">효율</span>
+                <div className={`calc-value sim-eff${isBest ? ' is-best-eff' : ''}`}>
+                  {eff !== null ? (
+                    <>
+                      {isBest && (
+                        <span className="eff-star" aria-hidden="true">
+                          ★
+                        </span>
+                      )}
+                      {fixed(eff, 2)}
+                    </>
+                  ) : (
+                    '-'
+                  )}
+                </div>
               </div>
               <button
                 type="button"

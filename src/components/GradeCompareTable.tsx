@@ -31,8 +31,9 @@ export function GradeCompareTable({ state, alreadyCash, current }: Props) {
       </div>
 
       {GRADES.map((g) => {
-        const ahead = calculate(state, g.req, fee, alreadyCash);
-        const upkeep = calculate(state, g.req, fee, 0);
+        // 비교표는 '각 등급을 지금 효율로 모두 되판다'는 가정의 예상값이므로 회수를 등급별로 환산한다.
+        const ahead = calculate(state, g.req, fee, alreadyCash, { scaleRecovery: true });
+        const upkeep = calculate(state, g.req, fee, 0, { scaleRecovery: true });
         const done = ahead.needCash <= 0;
         const pillClass = done ? 'done' : ahead.cost <= 0 ? 'gain' : '';
 

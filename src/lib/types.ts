@@ -22,19 +22,6 @@ export interface CashTier {
   earn: number | null;
 }
 
-/**
- * 판매 효율을 비교할 아이템 한 줄.
- * unitCost 의 단위는 종류에 따라 달라진다 — 캐시(원) · 크레딧.
- */
-export interface ItemRow {
-  id: string;
-  name: string;
-  /** 1개를 사는 데 드는 재화 수량 */
-  unitCost: number | null;
-  /** 1개를 팔 때 받는 메소(억) */
-  saleMeso: number | null;
-}
-
 /** 판매 시뮬레이션 재화 종류 — 캐시로 산 아이템 / 크레딧으로 산 아이템 */
 export type SaleKind = 'cash' | 'credit';
 
@@ -61,10 +48,7 @@ export interface CalcState {
   /** 프리미엄PC방 주당 이용 시간 */
   pcHours: number | null;
   tiers: CashTier[];
-  /** 2번 효율 확인용 — 계산에는 쓰지 않는다 */
-  cashItems: ItemRow[];
-  creditItems: ItemRow[];
-  /** 3번 판매 시뮬레이션 — 실제 회수/비용 계산의 근거 */
+  /** 판매 시뮬레이션 — 실제 회수/비용 계산의 근거 */
   sales: SaleRow[];
   /** 판매금 수령 수수료(%) */
   feeRate: number | null;
@@ -117,7 +101,7 @@ export interface CalcResult {
   /** 이 등급에서 쓸 수 있는 크레딧 (needCash 의 5%) */
   creditAvailable: number;
 
-  /** 시뮬 효율을 이 등급 needCash 로 환산한 판매 메소(억) */
+  /** 판매 메소(억). 기본은 입력한 계획 그대로, 등급 비교표는 needCash 로 환산한 값 */
   meso: number;
   mesoAfterFee: number;
   /** 메소를 환전해 회수하는 현금 */

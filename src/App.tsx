@@ -4,7 +4,6 @@ import { Card } from './components/Card';
 import { GradeCompareTable } from './components/GradeCompareTable';
 import { GradePicker } from './components/GradePicker';
 import { InlineField } from './components/InlineField';
-import { ItemTable } from './components/ItemTable';
 import { Modal } from './components/Modal';
 import { ResultBar } from './components/ResultBar';
 import { SaleSim } from './components/SaleSim';
@@ -23,13 +22,9 @@ export default function App() {
     patchTier,
     addTier,
     removeTier,
-    patchItem,
-    addItem,
-    removeItem,
     patchSale,
     addSale,
     removeSale,
-    importItemsToSales,
     reset,
   } = useCalcState();
 
@@ -46,20 +41,6 @@ export default function App() {
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
-
-  // 2번 효율표에서 3번으로 새로 담을 수 있는(아직 3번에 없는) 항목 수
-  const importableCount = useMemo(() => {
-    const seen = new Set(state.sales.map((s) => `${s.kind}|${s.unitCost}|${s.saleMeso}`));
-    const count = (rows: typeof state.cashItems, kind: string) =>
-      rows.filter(
-        (r) =>
-          typeof r.unitCost === 'number' &&
-          r.unitCost > 0 &&
-          r.saleMeso !== null &&
-          !seen.has(`${kind}|${r.unitCost}|${r.saleMeso}`),
-      ).length;
-    return count(state.cashItems, 'cash') + count(state.creditItems, 'credit');
-  }, [state.sales, state.cashItems, state.creditItems]);
 
   return (
     <div className="wrap">
@@ -172,49 +153,9 @@ export default function App() {
       {/* 2단계 */}
       <Card
         step={2}
-        title="판매 효율 비교"
-        desc="어떤 아이템이 유리한지 눈으로 비교만 하는 참고용입니다. 실제 회수·비용 계산은 아래 판매 시뮬레이션에서 합니다."
-      >
-        <h3 className="subhead">
-          가. 캐시아이템<span className="tag">캐시로 구매 → 메소 판매</span>
-        </h3>
-        <ItemTable
-          rows={state.cashItems}
-          costLabel="캐시가격(원)"
-          effLabel="(억/만원)"
-          onPatch={(id, p) => patchItem('cashItems', id, p)}
-          onRemove={(id) => removeItem('cashItems', id)}
-          onAdd={() => addItem('cashItems')}
-        />
-
-        <h3 className="subhead">
-          나. 크레딧아이템<span className="tag">캐시 사용액의 5%가 크레딧으로 적립 (고정)</span>
-        </h3>
-        <ItemTable
-          rows={state.creditItems}
-          costLabel="필요크레딧"
-          effLabel="(억/만크레딧)"
-          onPatch={(id, p) => patchItem('creditItems', id, p)}
-          onRemove={(id) => removeItem('creditItems', id)}
-          onAdd={() => addItem('creditItems')}
-        />
-      </Card>
-
-      {/* 3단계 */}
-      <Card
-        step={3}
         title="판매 시뮬레이션"
-        desc="실제로 팔 계획을 그대로 넣어 회수 현금과 실제 비용을 계산합니다."
+        desc="실제로 팔 계획(무엇을 얼마에 몇 개)을 그대로 넣으면 회수 현금과 실제 비용이 나옵니다. 각 줄의 효율로 어떤 판매가 유리한지도 함께 보여줍니다."
       >
-        <button
-          type="button"
-          className="import-btn"
-          onClick={importItemsToSales}
-          disabled={importableCount === 0}
-          title={importableCount === 0 ? '효율표에 새로 담을 항목이 없습니다' : undefined}
-        >
-          효율표에서 담기{importableCount > 0 ? ` (${importableCount})` : ''}
-        </button>
         <SaleSim
           sales={state.sales}
           result={result}
@@ -224,17 +165,17 @@ export default function App() {
         />
       </Card>
 
-      {/* 4단계 */}
+      {/* 3단계 */}
       <Card
-        step={4}
+        step={3}
         title="등급별 비용 비교"
-        desc="지금 입력한 조건 그대로, 어느 등급이 얼마에 달성되는지 한 번에 보여줍니다."
+        desc="지금 입력한 판매 효율을 각 등급의 필요 캐시에 적용한 예상입니다. 어느 등급이 얼마에 달성되는지 한눈에 비교하세요."
       >
         <GradeCompareTable state={state} alreadyCash={alreadyCash} current={state.grade} />
         <div className="note">
-          추가 비용은 누적된 캐시와 PC방 환산분을 뺀 나머지만 계산한 값입니다. 유지 비용은 그
-          등급을 계속 유지할 때 드는 13주 평균입니다. 입력한 경매장 수수료를 모든 등급에 똑같이
-          적용했습니다.
+          각 등급의 필요 캐시를 지금 판매 효율로 모두 되판다고 가정한 <b>예상값</b>입니다(위쪽 실제
+          비용과 다를 수 있습니다). 유지 비용은 그 등급을 계속 유지할 때 드는 13주 평균이며, 입력한
+          경매장 수수료를 모든 등급에 똑같이 적용했습니다.
         </div>
       </Card>
 

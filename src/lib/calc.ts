@@ -1,5 +1,5 @@
 import { CREDIT_EARN_RATE, PC_CASH_PER_HOUR, WEEKS } from './grades';
-import type { CalcResult, CalcState, CashTier, ItemRow, SaleRow, SaleTotals, TierFill } from './types';
+import type { CalcResult, CalcState, CashTier, SaleRow, SaleTotals, TierFill } from './types';
 
 /**
  * 계산 로직 전체. 모두 순수 함수이므로 UI 없이 테스트할 수 있다.
@@ -7,12 +7,12 @@ import type { CalcResult, CalcState, CashTier, ItemRow, SaleRow, SaleTotals, Tie
  * 흐름
  *   ① 필요 캐시 = 등급 기준 − 이미 누적 − PC방 환산
  *   ② 순지출   = 필요 캐시를 조건 한도에 순서대로 채운 결제액 − 적립액
- *   ③ 재판매   = 판매 시뮬레이션(3번)이 정의한 "캐시 1원당 판매 메소" 효율
- *   ④ 회수현금 = (효율 × 필요 캐시) × (1 − 수수료) × 환전시세
+ *   ③ 재판매   = 판매 시뮬레이션에 입력한 계획 그대로의 판매 메소
+ *   ④ 회수현금 = 판매 메소 × (1 − 수수료) × 환전시세
  *   ⑤ 실제비용 = ② − ④
  *
- * 2번 '판매 효율 비교'는 어떤 아이템이 유리한지 눈으로 보는 참고용이고,
- * 실제 회수/비용은 3번 판매 시뮬레이션 입력만으로 계산한다.
+ * 기본은 '입력한 판매 계획 그대로' 계산한다(개수를 바꾸면 회수도 바뀐다).
+ * 등급별 비교표만 opts.scaleRecovery 로 효율을 각 등급 목표에 맞춰 환산한 '예상'을 쓴다.
  */
 
 /** null·빈 문자열·NaN 을 0 으로 흡수한다 */
@@ -21,11 +21,11 @@ export function n(v: number | null | undefined): number {
 }
 
 /**
- * 아이템 효율 = 판매메소(억) ÷ (필요재화 ÷ 10,000)
- * 즉 "1만 단위 재화당 몇 억 메소를 뽑는가". (2번 표에서 비교용으로만 쓴다)
+ * 판매 효율 = 판매메소(억) ÷ (필요재화 ÷ 10,000)
+ * 즉 "1만 단위 재화당 몇 억 메소를 뽑는가". (판매 행끼리 비교용)
  * 입력이 비어 있으면 null (비교 대상에서 제외).
  */
-export function efficiency(row: ItemRow): number | null {
+export function efficiency(row: { unitCost: number | null; saleMeso: number | null }): number | null {
   const cost = n(row.unitCost);
   if (cost <= 0 || row.saleMeso === null || !Number.isFinite(n(row.saleMeso))) return null;
   return n(row.saleMeso) / (cost / 10_000);
@@ -89,6 +89,7 @@ export function calculate(
   targetCash: number,
   feePct: number,
   already: number,
+  opts?: { scaleRecovery?: boolean },
 ): CalcResult {
   const pcCash = n(state.pcHours) * PC_CASH_PER_HOUR * WEEKS;
   const needCash = Math.max(0, targetCash - Math.max(0, already) - pcCash);
@@ -96,11 +97,12 @@ export function calculate(
   const { fills, paid, earned, overflow } = fillTiers(needCash, state.tiers);
   const spend = paid - earned;
 
-  // 시뮬이 표현한 재판매 효율(캐시 1원당 판매 메소)을 이 등급 needCash 로 환산한다.
-  // 캐시 사용액을 needCash 에 맞추면 입력한 판매 메소가 그대로 반영된다.
+  // 기본: 입력한 판매 계획 그대로의 판매 메소.
+  // scaleRecovery(등급 비교표): 캐시 1원당 판매 메소 효율을 이 등급 needCash 로 환산한 '예상'.
   const sale = sumSales(state.sales);
-  const mesoPerCash = sale.cashUsed > 0 ? sale.mesoRaw / sale.cashUsed : 0;
-  const meso = mesoPerCash * needCash;
+  const meso = opts?.scaleRecovery
+    ? (sale.cashUsed > 0 ? (sale.mesoRaw / sale.cashUsed) * needCash : 0)
+    : sale.mesoRaw;
 
   const feeMultiplier = 1 - feePct / 100;
   const mesoAfterFee = meso * feeMultiplier;
