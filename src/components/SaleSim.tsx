@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NumberField } from './NumberField';
 import { efficiency, n } from '../lib/calc';
 import { eok, fixed, int, won } from '../lib/format';
+import { SALE_ITEMS } from '../lib/saleItems';
 import type { CalcResult, SaleKind, SaleRow } from '../lib/types';
 
 interface Props {
@@ -10,17 +11,12 @@ interface Props {
   onPatch: (id: string, patch: Partial<SaleRow>) => void;
   onRemove: (id: string) => void;
   onAdd: (init?: Partial<Pick<SaleRow, 'kind' | 'unitCost' | 'saleMeso' | 'qty'>>) => void;
+  /** 목표 캐시에 맞춰 대표 상품을 자동으로 섞어 채운다 */
+  onAutoFill: (needCash: number) => void;
 }
 
 // 넓은 화면 한 줄: 종류 | 가격 | 판매가(억) | 개수 | 판매메소 | 효율 | 삭제
 const SCOLS = '72px minmax(82px, 1.2fr) minmax(74px, 1fr) 48px minmax(74px, 1fr) 56px 32px';
-
-// 자주 쓰는 판매 항목 예시. 종류·가격만 채워지고, 판매가(시세)·개수는 직접 넣는다.
-const SALE_PRESETS: { label: string; init: Partial<Pick<SaleRow, 'kind' | 'unitCost'>> }[] = [
-  { label: '캐시 99,000', init: { kind: 'cash', unitCost: 99_000 } },
-  { label: '캐시 30,000', init: { kind: 'cash', unitCost: 30_000 } },
-  { label: '크레딧 20,000', init: { kind: 'credit', unitCost: 20_000 } },
-];
 
 const costLabel = (kind: SaleKind) => (kind === 'credit' ? '필요크레딧' : '가격(원)');
 
@@ -29,7 +25,7 @@ const costLabel = (kind: SaleKind) => (kind === 'credit' ? '필요크레딧' : '
  * "얼마짜리 아이템을 얼마에 몇 개 판다"를 행으로 쌓아 실제 회수·비용을 낸다.
  * 시장 상황에 맞춰 같은 아이템을 여러 가격대로 나눠 넣을 수 있다.
  */
-export function SaleSim({ sales, result, onPatch, onRemove, onAdd }: Props) {
+export function SaleSim({ sales, result, onPatch, onRemove, onAdd, onAutoFill }: Props) {
   const [kind, setKind] = useState<SaleKind>('cash');
   const [unitCost, setUnitCost] = useState<number | null>(null);
   const [saleMeso, setSaleMeso] = useState<number | null>(null);
@@ -60,12 +56,33 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd }: Props) {
 
   return (
     <>
-      {/* 자주 쓰는 항목 빠른 추가 */}
+      {/* 목표에 맞춰 대표 상품을 섞어 자동으로 채운다 */}
+      <div className="auto-fill">
+        <button
+          type="button"
+          className="auto-fill-btn"
+          onClick={() => onAutoFill(result.needCash)}
+          disabled={result.needCash <= 0}
+          title={result.needCash <= 0 ? '이미 목표를 채웠습니다' : undefined}
+        >
+          목표에 맞춰 자동 구성
+        </button>
+        <span className="auto-fill-hint">
+          큰 묶음 위주로 섞어 목표를 채운 예시입니다. 개수·판매가는 자유롭게 고치세요.
+        </span>
+      </div>
+
+      {/* 대표 상품 담기 (판매가·가격이 채워지고 개수만 직접 입력) */}
       <div className="preset-row">
-        <span className="preset-lbl">빠른 추가</span>
-        {SALE_PRESETS.map((p) => (
-          <button key={p.label} type="button" className="preset-chip" onClick={() => onAdd(p.init)}>
-            {p.label}
+        <span className="preset-lbl">상품 담기</span>
+        {SALE_ITEMS.map((it) => (
+          <button
+            key={it.label}
+            type="button"
+            className="preset-chip"
+            onClick={() => onAdd({ kind: it.kind, unitCost: it.unitCost, saleMeso: it.saleMeso })}
+          >
+            {it.label}
           </button>
         ))}
       </div>

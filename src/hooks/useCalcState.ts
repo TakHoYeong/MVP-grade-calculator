@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createDefaultState, newId } from '../lib/defaults';
+import { suggestSaleMix } from '../lib/saleItems';
 import { clearState, loadState, saveState } from '../lib/storage';
 import type { CalcState, CashTier, GradeKey, SaleRow } from '../lib/types';
 
@@ -79,6 +80,19 @@ export function useCalcState() {
     setState((prev) => ({ ...prev, sales: prev.sales.filter((row) => row.id !== id) }));
   }, []);
 
+  // 목표 캐시에 맞춰 대표 상품을 적절히 섞어 판매 목록을 새로 채운다(기존 목록은 대체).
+  const autoFillSales = useCallback((needCash: number) => {
+    const rows: SaleRow[] = suggestSaleMix(needCash).map(({ item, qty }) => ({
+      id: newId('s'),
+      kind: item.kind,
+      unitCost: item.unitCost,
+      saleMeso: item.saleMeso,
+      qty,
+    }));
+    if (rows.length === 0) return;
+    setState((prev) => ({ ...prev, sales: rows }));
+  }, []);
+
   const reset = useCallback(() => {
     clearState();
     setState(createDefaultState());
@@ -94,6 +108,7 @@ export function useCalcState() {
     patchSale,
     addSale,
     removeSale,
+    autoFillSales,
     reset,
   };
 }

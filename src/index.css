@@ -993,6 +993,50 @@ input.txt {
   outline-offset: 1px;
 }
 
+/* ---------- 목표 자동 구성 ---------- */
+.auto-fill {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-bottom: 12px;
+}
+
+.auto-fill-btn {
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 9px 16px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.auto-fill-btn:hover:not(:disabled) {
+  background: var(--accent-strong);
+}
+
+.auto-fill-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.auto-fill-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.auto-fill-hint {
+  flex: 1;
+  min-inline-size: 180px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
 /* ---------- 빠른 추가 프리셋 ---------- */
 .preset-row {
   display: flex;

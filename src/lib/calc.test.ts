@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { calculate, efficiency, fillTiers, n, sumSales } from './calc';
 import { createDefaultState, newId } from './defaults';
 import { findGrade } from './grades';
+import { suggestSaleMix } from './saleItems';
 import type { CalcState, SaleRow } from './types';
 
 /** 기본 상태 위에 일부만 덮어쓴다 */
@@ -185,5 +186,28 @@ describe('빈 입력 방어', () => {
     expect(r.spend).toBe(2_500_000); // 할인 조건이 없으니 액면 그대로
     expect(r.cashBack).toBe(0);
     expect(Number.isFinite(r.cost)).toBe(true);
+  });
+});
+
+describe('suggestSaleMix', () => {
+  it('목표 이상을 채우고 여러 상품으로 분산한다', () => {
+    const mix = suggestSaleMix(2_500_000);
+    const cashUsed = mix.reduce((sum, m) => sum + m.item.unitCost * m.qty, 0);
+    expect(cashUsed).toBeGreaterThanOrEqual(2_500_000);
+    expect(mix.length).toBeGreaterThan(1); // 한 상품으로만 몰지 않는다
+  });
+
+  it('한 상품이 목표의 절반을 크게 넘지 않는다 (자가 시세 하락 완화)', () => {
+    const target = 2_500_000;
+    const mix = suggestSaleMix(target);
+    // 마지막 보충용(가장 작은 단위)을 제외하면 각 상품은 목표의 50% 이내
+    const bigItems = mix.filter((m) => m.item.unitCost > 10_000);
+    for (const m of bigItems) {
+      expect(m.item.unitCost * m.qty).toBeLessThanOrEqual(target * 0.5);
+    }
+  });
+
+  it('목표가 0이면 빈 배열', () => {
+    expect(suggestSaleMix(0)).toEqual([]);
   });
 });

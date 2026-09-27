@@ -25,6 +25,7 @@ export default function App() {
     patchSale,
     addSale,
     removeSale,
+    autoFillSales,
     reset,
   } = useCalcState();
 
@@ -162,6 +163,7 @@ export default function App() {
           onPatch={patchSale}
           onRemove={removeSale}
           onAdd={addSale}
+          onAutoFill={autoFillSales}
         />
       </Card>
 
