@@ -22,7 +22,6 @@ export function createDefaultState(): CalcState {
     tiers: [],
     sales: [],
     feeRate: 5,
-    feeRateManual: false,
     exRate: null,
   };
 }

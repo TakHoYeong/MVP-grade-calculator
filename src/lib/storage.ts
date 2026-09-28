@@ -1,3 +1,4 @@
+import { createDefaultState } from './defaults';
 import type { CalcState } from './types';
 
 /**
@@ -10,12 +11,13 @@ export function loadState(): CalcState | null {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as CalcState;
+    const parsed = JSON.parse(raw) as Partial<CalcState>;
     // 최소한의 형태 검증. 구조가 바뀐 옛 데이터는 버린다.
     if (!parsed || !Array.isArray(parsed.tiers) || !Array.isArray(parsed.sales)) {
       return null;
     }
-    return parsed;
+    // 기본값 위에 저장값을 얹어, 이후 추가된 필드(pcPickup 등)가 undefined 로 남지 않게 한다.
+    return { ...createDefaultState(), ...parsed };
   } catch {
     return null;
   }

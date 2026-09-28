@@ -50,10 +50,8 @@ export interface CalcState {
   tiers: CashTier[];
   /** 판매 시뮬레이션 — 실제 회수/비용 계산의 근거 */
   sales: SaleRow[];
-  /** 판매금 수령 수수료(%) */
+  /** 판매금 수령 수수료(%) — 3(MVP 실버 이상·PC방 수령) 또는 5 */
   feeRate: number | null;
-  /** 사용자가 수수료를 직접 바꿨는지. true 면 누적 캐시 기반 자동 조정을 멈춘다 */
-  feeRateManual: boolean;
   /** 환전 시세: 원 / 1억 메소 */
   exRate: number | null;
 }

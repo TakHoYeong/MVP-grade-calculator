@@ -929,6 +929,62 @@ input.txt {
   background: #fff;
 }
 
+/* ---------- 경매장 수수료 토글 (3% / 5%) ---------- */
+.fee-field {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.fee-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  min-inline-size: 0;
+}
+
+/* 오른쪽 끝, 값 칩 — 3%/5% 전환이 잘 보이게 */
+.fee-val {
+  flex: none;
+  min-inline-size: 46px;
+  text-align: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.fee-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.fee-toggle input[type='checkbox'] {
+  appearance: auto;
+  inline-size: 16px;
+  block-size: 16px;
+  min-block-size: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  flex: none;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.fee-toggle input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* ---------- 합계 줄 ---------- */
 .totals {
   display: flex;

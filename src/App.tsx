@@ -19,7 +19,7 @@ export default function App() {
     state,
     patch,
     setGrade,
-    setFeeRate,
+    setFeeLow,
     patchTier,
     addTier,
     removeTier,
@@ -44,11 +44,11 @@ export default function App() {
   // 결과바 경고 아이콘에 모을, 덜 입력했거나 확인이 필요한 항목들
   const warnings = useMemo(() => {
     const w: string[] = [];
+    if (result.needCash > 0 && state.tiers.length === 0) {
+      w.push('넥슨캐시 구매 방식을 입력하지 않았습니다.');
+    }
     if (n(state.exRate) <= 0) {
       w.push('환전 시세가 비어 있어요. 입력하면 환전 회수가 계산됩니다.');
-    }
-    if (state.feeRate === null) {
-      w.push('경매장 수수료가 비어 있어요. 기본 5% 또는 실제 값을 입력하세요.');
     }
     const hasPlan = result.sale.cashUsed > 0 || result.sale.creditUsed > 0;
     const creditLeft = result.creditAvailable - result.sale.creditUsed;
@@ -60,7 +60,7 @@ export default function App() {
       w.push(`크레딧을 가용치보다 ${int(-creditLeft)} 더 썼어요.`);
     }
     return w;
-  }, [state.exRate, state.feeRate, result]);
+  }, [state.exRate, state.tiers.length, result]);
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -118,12 +118,20 @@ export default function App() {
           comma
           onChange={(v) => patch({ exRate: v })}
         />
-        <InlineField
-          label="경매장 수수료"
-          hint="누적 30만 이상이면 자동 3%, 미만이면 5% · 직접 고치면 그 값으로 고정(PC방 수령 등)"
-          value={state.feeRate}
-          onChange={setFeeRate}
-        />
+        <div className="inline-field fee-field">
+          <div className="fee-left">
+            <span className="lbl">경매장 수수료</span>
+            <label className="fee-toggle">
+              <input
+                type="checkbox"
+                checked={fee === 3}
+                onChange={(e) => setFeeLow(e.target.checked)}
+              />
+              MVP 실버 이상 · PC방 수령
+            </label>
+          </div>
+          <b className="fee-val">{fee}%</b>
+        </div>
       </Card>
 
       <ResultBar
