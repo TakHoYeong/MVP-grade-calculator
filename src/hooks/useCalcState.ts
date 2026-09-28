@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
+import { n } from '../lib/calc';
 import { createDefaultState, newId } from '../lib/defaults';
 import { suggestSaleMix } from '../lib/saleItems';
 import { clearState, loadState, saveState } from '../lib/storage';
 import type { CalcState, CashTier, GradeKey, SaleRow } from '../lib/types';
+
+/** 실버 등급(현재 3% 수수료) 기준 누적 캐시 */
+const SILVER_REQ = 300_000;
 
 /**
  * 계산기 입력 상태를 관리한다.
@@ -15,8 +19,23 @@ export function useCalcState() {
     saveState(state);
   }, [state]);
 
+  // 누적된 캐시로 현재 등급(실버=30만)을 추정해 경매장 수수료를 자동 조정한다.
+  // 30만 이상이면 3%, 미만이면 5%. 단, 사용자가 직접 바꾼 뒤에는(feeRateManual) 건드리지 않는다.
+  useEffect(() => {
+    setState((prev) => {
+      if (prev.feeRateManual) return prev;
+      const auto = n(prev.alreadyCash) >= SILVER_REQ ? 3 : 5;
+      return prev.feeRate === auto ? prev : { ...prev, feeRate: auto };
+    });
+  }, [state.alreadyCash, state.feeRateManual]);
+
   const patch = useCallback((p: Partial<CalcState>) => {
     setState((prev) => ({ ...prev, ...p }));
+  }, []);
+
+  // 사용자가 수수료를 직접 입력하면 자동 조정을 멈춘다(그 값으로 고정).
+  const setFeeRate = useCallback((v: number | null) => {
+    setState((prev) => ({ ...prev, feeRate: v, feeRateManual: true }));
   }, []);
 
   // 수수료는 등급이 아니라 수령 방식(실버 이상·PC방)에 달렸으므로, 등급을 바꿔도 건드리지 않는다.
@@ -102,6 +121,7 @@ export function useCalcState() {
     state,
     patch,
     setGrade,
+    setFeeRate,
     patchTier,
     addTier,
     removeTier,

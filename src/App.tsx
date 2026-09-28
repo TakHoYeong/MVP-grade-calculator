@@ -19,6 +19,7 @@ export default function App() {
     state,
     patch,
     setGrade,
+    setFeeRate,
     patchTier,
     addTier,
     removeTier,
@@ -119,9 +120,9 @@ export default function App() {
         />
         <InlineField
           label="경매장 수수료"
-          hint="기본 5% · MVP 실버 이상이거나 PC방에서 수령 시 3%"
+          hint="누적 30만 이상이면 자동 3%, 미만이면 5% · 직접 고치면 그 값으로 고정(PC방 수령 등)"
           value={state.feeRate}
-          onChange={(v) => patch({ feeRate: v })}
+          onChange={setFeeRate}
         />
       </Card>
 

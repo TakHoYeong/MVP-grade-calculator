@@ -52,6 +52,8 @@ export interface CalcState {
   sales: SaleRow[];
   /** 판매금 수령 수수료(%) */
   feeRate: number | null;
+  /** 사용자가 수수료를 직접 바꿨는지. true 면 누적 캐시 기반 자동 조정을 멈춘다 */
+  feeRateManual: boolean;
   /** 환전 시세: 원 / 1억 메소 */
   exRate: number | null;
 }
