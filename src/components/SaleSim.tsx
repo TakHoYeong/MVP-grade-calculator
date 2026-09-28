@@ -44,6 +44,8 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd, onAutoFill }:
   const creditOver = creditUsed > result.creditAvailable;
 
   // 같은 종류끼리 가장 효율 좋은 줄에 ★ (효율 단위가 종류마다 달라 종류별로 비교한다)
+  // 화면에 보이는 소수 둘째 자리 기준으로 비교해, 같은 값으로 표시되면 함께 ★ 가 붙는다.
+  const round2 = (v: number) => Math.round(v * 100) / 100;
   const bestEffOf = (k: SaleKind) =>
     sales.reduce((m, s) => {
       if (s.kind !== k) return m;
@@ -151,7 +153,8 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd, onAutoFill }:
           const meso = n(s.saleMeso) * n(s.qty);
           const eff = efficiency(s);
           const best = s.kind === 'cash' ? bestCash : bestCredit;
-          const isBest = eff !== null && eff > 0 && eff === best && countOf(s.kind) > 1;
+          const isBest =
+            eff !== null && eff > 0 && round2(eff) === round2(best) && countOf(s.kind) > 1;
           return (
             <div key={s.id} className="sim-item">
               <label className="sim-kind-wrap">

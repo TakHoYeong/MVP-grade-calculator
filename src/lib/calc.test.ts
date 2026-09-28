@@ -197,13 +197,13 @@ describe('suggestSaleMix', () => {
     expect(mix.length).toBeGreaterThan(1); // 한 상품으로만 몰지 않는다
   });
 
-  it('한 상품이 목표의 절반을 크게 넘지 않는다 (자가 시세 하락 완화)', () => {
+  it('한 상품이 목표의 상한(60%)을 넘지 않는다 (자가 시세 하락 완화)', () => {
     const target = 2_500_000;
     const mix = suggestSaleMix(target);
-    // 마지막 보충용(가장 작은 단위)을 제외하면 각 상품은 목표의 50% 이내
+    // 마지막 보충용(가장 작은 단위)을 제외하면 각 상품은 목표의 60% 이내
     const bigItems = mix.filter((m) => m.item.unitCost > 10_000);
     for (const m of bigItems) {
-      expect(m.item.unitCost * m.qty).toBeLessThanOrEqual(target * 0.5);
+      expect(m.item.unitCost * m.qty).toBeLessThanOrEqual(target * 0.6);
     }
   });
 

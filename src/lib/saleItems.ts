@@ -21,9 +21,16 @@ export const SALE_ITEMS: SaleItem[] = [
 ];
 
 /**
+ * 한 상품이 목표에서 차지할 수 있는 최대 비중.
+ * 값이 클수록 큰 묶음(원더베리 21개)에 더 몰아 거래 횟수(노동력)를 줄이고,
+ * 작을수록 여러 상품으로 잘게 분산해 자가 시세 하락을 더 완화한다.
+ */
+const BIG_ITEM_CAP_RATIO = 0.6;
+
+/**
  * 목표 캐시(needCash)를 대표 상품으로 적절히 섞어 채운다.
- * - 큰 묶음(원더베리 21개)부터 채워 거래 횟수(노동력)를 줄이되,
- * - 한 상품이 목표의 절반을 넘지 않게 분산해 자가 시세 하락을 완화하고,
+ * - 큰 묶음(원더베리 21개) 위주로 채워 거래 횟수(노동력)를 줄이되,
+ * - 한 상품이 목표의 BIG_ITEM_CAP_RATIO 를 넘지 않게 해 자가 시세 하락을 완화하고,
  * - 남는 금액은 가장 작은 단위로 채워 목표 이상이 되게 한다.
  * 어디까지나 시작점이며, 실제 시장 상황에 맞게 개수를 조정해 쓴다.
  */
@@ -33,7 +40,7 @@ export function suggestSaleMix(needCash: number): { item: SaleItem; qty: number 
 
   const byCostDesc = [...SALE_ITEMS].sort((a, b) => b.unitCost - a.unitCost);
   const smallest = byCostDesc[byCostDesc.length - 1];
-  const cap = target * 0.5; // 한 상품 최대 사용 한도(목표의 50%)
+  const cap = target * BIG_ITEM_CAP_RATIO; // 한 상품 최대 사용 한도
 
   const out: { item: SaleItem; qty: number }[] = [];
   let remaining = target;
