@@ -414,6 +414,87 @@ img {
   border-top: 2px solid var(--gold);
 }
 
+/* 실제 현금 숫자 옆 경고 아이콘 + 호버 툴팁 */
+.result-figure-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fig-warn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: #efb457; /* 어두운 결과바 위에서 눈에 띄는 경고 앰버 */
+  cursor: help;
+  border-radius: 8px;
+}
+
+.fig-warn:focus-visible {
+  outline: 2px solid #efb457;
+  outline-offset: 2px;
+}
+
+.fig-warn-ico {
+  display: block;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 22%));
+}
+
+.fig-warn-count {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.fig-warn-tip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
+  inline-size: max-content;
+  max-inline-size: 280px;
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--warn);
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 24%);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.12s, transform 0.12s;
+}
+
+.fig-warn:hover .fig-warn-tip,
+.fig-warn:focus .fig-warn-tip,
+.fig-warn:focus-within .fig-warn-tip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.fig-warn-title {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--warn);
+  font-weight: 800;
+  font-size: 12.5px;
+}
+
+.fig-warn-tip ul {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.fig-warn-tip li {
+  margin: 3px 0;
+  color: var(--text);
+}
+
 .result-top {
   display: flex;
   align-items: baseline;
@@ -494,6 +575,7 @@ img {
   outline: 2px solid #f4fbf9;
   outline-offset: 2px;
 }
+
 
 /* ---------- 모달 ---------- */
 .modal-backdrop {

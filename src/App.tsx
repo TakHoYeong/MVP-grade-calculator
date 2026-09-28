@@ -40,20 +40,36 @@ export default function App() {
   );
   const maintenance = useMemo(() => calculate(state, grade.req, fee, 0), [state, grade.req, fee]);
 
+  // 결과바 경고 아이콘에 모을, 덜 입력했거나 확인이 필요한 항목들
+  const warnings = useMemo(() => {
+    const w: string[] = [];
+    if (n(state.exRate) <= 0) {
+      w.push('환전 시세가 비어 있어요. 입력하면 환전 회수가 계산됩니다.');
+    }
+    if (state.feeRate === null) {
+      w.push('경매장 수수료가 비어 있어요. 기본 5% 또는 실제 값을 입력하세요.');
+    }
+    const hasPlan = result.sale.cashUsed > 0 || result.sale.creditUsed > 0;
+    const creditLeft = result.creditAvailable - result.sale.creditUsed;
+    if (hasPlan && result.creditAvailable > 0 && creditLeft > 0) {
+      w.push(
+        `가용 크레딧 ${int(result.creditAvailable)} 중 ${int(result.sale.creditUsed)}만 썼어요. 크레딧 아이템을 더 팔면 회수가 늘어요.`,
+      );
+    } else if (creditLeft < 0) {
+      w.push(`크레딧을 가용치보다 ${int(-creditLeft)} 더 썼어요.`);
+    }
+    return w;
+  }, [state.exRate, state.feeRate, result]);
+
   const [detailOpen, setDetailOpen] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
   return (
     <div className="wrap">
       <header className="masthead">
-        <p className="masthead-kicker">
-          <span className="kicker-tick" aria-hidden="true" />
-          메이플스토리 · 넥슨캐시
-        </p>
         <h1 className="masthead-title">MVP 등급 계산기</h1>
         <p className="masthead-lede">
-          목표 등급과 지금까지 쌓인 캐시를 넣으면, 그 등급을 다는 데 앞으로 실제로 드는 현금을
-          계산해 드립니다. 값을 고치면 곧바로 다시 계산됩니다.
+          MVP 작업 시에 발생하는 지출의 회수금액을 계산할 수 있습니다.
         </p>
       </header>
 
@@ -114,6 +130,7 @@ export default function App() {
         result={result}
         maintenance={maintenance}
         onDetail={() => setDetailOpen(true)}
+        warnings={warnings}
       />
 
       {/* 1단계 */}

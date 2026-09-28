@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NumberField } from './NumberField';
 import { efficiency, n } from '../lib/calc';
-import { eok, fixed, int, won } from '../lib/format';
+import { eok, fixed, int } from '../lib/format';
 import { SALE_ITEMS } from '../lib/saleItems';
 import type { CalcResult, SaleKind, SaleRow } from '../lib/types';
 
@@ -38,10 +38,9 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd, onAutoFill }:
     setQty(null);
   };
 
-  const { cashUsed, creditUsed, mesoRaw } = result.sale;
+  const { cashUsed, mesoRaw } = result.sale;
   // MVP 는 목표 금액 '이상'을 채워야 달성된다. 근처(부족)면 달성되지 않는다.
   const shortfall = result.needCash - cashUsed;
-  const creditOver = creditUsed > result.creditAvailable;
 
   // 같은 종류끼리 가장 효율 좋은 줄에 ★ (효율 단위가 종류마다 달라 종류별로 비교한다)
   // 화면에 보이는 소수 둘째 자리 기준으로 비교해, 같은 값으로 표시되면 함께 ★ 가 붙는다.
@@ -224,7 +223,7 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd, onAutoFill }:
         })}
       </div>
 
-      {/* 합계 · 목표 대비 */}
+      {/* 합계 · 목표 대비 (회수 현금·실제 비용·크레딧은 상단 결과바에 표시) */}
       <div className="totals sim-totals">
         <span>
           캐시 사용 <b>{int(cashUsed)}</b> / 목표 {int(result.needCash)}
@@ -233,17 +232,7 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd, onAutoFill }:
           </em>
         </span>
         <span>
-          크레딧 사용 <b>{int(creditUsed)}</b> / 가용 {int(result.creditAvailable)}
-          {creditOver && <em className="sim-tag warn">초과</em>}
-        </span>
-        <span>
           총 판매메소<b>{eok(mesoRaw)}억</b>
-        </span>
-        <span>
-          회수 현금<b>{won(result.cashBack)}</b>
-        </span>
-        <span>
-          실제 비용<b>{won(result.cost)}</b>
         </span>
       </div>
     </>

@@ -10,18 +10,66 @@ interface Props {
   maintenance: CalcResult;
   /** 상세 내역 모달 열기 */
   onDetail: () => void;
+  /** 덜 입력했거나 확인이 필요한 항목들 (없으면 경고 아이콘을 숨긴다) */
+  warnings: string[];
 }
 
 /** 스크롤 중에도 화면에 남는 결과 요약 */
-export function ResultBar({ grade, result, maintenance, onDetail }: Props) {
+export function ResultBar({ grade, result, maintenance, onDetail, warnings }: Props) {
   return (
     <div className="result-bar">
       <div className="result-top">
-        <div>
+        <div className="result-headline">
           <div className="result-label">{grade.name}까지 추가로 드는 실제 현금</div>
-          <div className="result-figure">
-            {int(result.cost)}
-            <small>원</small>
+          <div className="result-figure-row">
+            <div className="result-figure">
+              {int(result.cost)}
+              <small>원</small>
+            </div>
+
+            {warnings.length > 0 && (
+              <span
+                className="fig-warn"
+                tabIndex={0}
+                aria-label={`확인이 필요한 항목 ${warnings.length}건: ${warnings.join(' · ')}`}
+              >
+                <svg
+                  className="fig-warn-ico"
+                  viewBox="0 0 24 24"
+                  width="28"
+                  height="28"
+                  aria-hidden="true"
+                >
+                  <path d="M12 3.5 22 20.5 2 20.5 Z" fill="currentColor" opacity="0.16" />
+                  <path
+                    d="M12 3.5 22 20.5 2 20.5 Z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinejoin="round"
+                  />
+                  <line
+                    x1="12"
+                    y1="9.5"
+                    x2="12"
+                    y2="14.6"
+                    stroke="currentColor"
+                    strokeWidth="1.9"
+                    strokeLinecap="round"
+                  />
+                  <circle cx="12" cy="17.4" r="1.15" fill="currentColor" />
+                </svg>
+                {warnings.length > 1 && <span className="fig-warn-count">{warnings.length}</span>}
+                <span className="fig-warn-tip" role="tooltip">
+                  <b className="fig-warn-title">확인해 보세요</b>
+                  <ul>
+                    {warnings.map((w) => (
+                      <li key={w}>{w}</li>
+                    ))}
+                  </ul>
+                </span>
+              </span>
+            )}
           </div>
         </div>
         <div className="badge">회수율 {pct(result.recovery)}</div>
