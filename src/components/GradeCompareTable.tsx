@@ -12,12 +12,11 @@ interface Props {
 const COLS = 'minmax(64px, 0.9fr) 0.7fr 1fr 1.2fr 1fr 1fr';
 
 /**
- * 같은 시세·할인 조건에서 6개 등급을 나란히 비교한다.
- * 각 등급의 기본 옥션 수수료를 적용하므로, 브론즈(5%)가 실버 이상(3%)보다
- * 회수에서 불리한 점까지 드러난다.
+ * 같은 시세·할인·수수료 조건에서 6개 등급을 나란히 비교한다.
+ * 회수는 '지금 판매 효율로 각 등급을 모두 되판다'는 가정(scaleRecovery)으로 환산한 예상값이다.
  */
 export function GradeCompareTable({ state, alreadyCash, current }: Props) {
-  // 수수료는 등급이 아니라 수령 방식에 달렸으므로, 모든 등급에 입력한 값을 그대로 쓴다.
+  // 수수료는 등급이 아니라 수령 방식(실버 이상·PC방)에 달렸으므로, 모든 등급에 같은 값을 쓴다.
   const fee = n(state.feeRate);
   return (
     <div className="rows" style={{ ['--cols' as string]: COLS }}>

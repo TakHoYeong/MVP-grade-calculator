@@ -14,11 +14,34 @@ interface Props {
  */
 export function Modal({ open, onClose, title, children }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    // 열기 직전 포커스를 기억해 두었다가, 닫을 때 그 자리로 되돌린다.
+    const prevFocused = document.activeElement as HTMLElement | null;
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      // 포커스 트랩: Tab 이 모달 밖으로 새지 않게 처음↔끝을 순환시킨다.
+      if (e.key === 'Tab' && panelRef.current) {
+        const items = panelRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        if (items.length === 0) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener('keydown', onKey);
     const prevOverflow = document.body.style.overflow;
@@ -27,6 +50,7 @@ export function Modal({ open, onClose, title, children }: Props) {
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prevOverflow;
+      prevFocused?.focus?.();
     };
   }, [open, onClose]);
 
@@ -35,6 +59,7 @@ export function Modal({ open, onClose, title, children }: Props) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
+        ref={panelRef}
         className="modal-panel"
         role="dialog"
         aria-modal="true"

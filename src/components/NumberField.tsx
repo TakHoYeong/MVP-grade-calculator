@@ -98,7 +98,7 @@ export function NumberField({
         id={id}
         className="num"
         type="text"
-        inputMode="decimal"
+        inputMode={integer ? 'numeric' : 'decimal'}
         autoComplete="off"
         value={display}
         placeholder={placeholder}

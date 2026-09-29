@@ -18,6 +18,11 @@ interface Props {
 export function ResultBar({ grade, result, maintenance, onDetail, warnings }: Props) {
   return (
     <div className="result-bar">
+      {/* 스크린리더 전용: 결과가 바뀌면 정중히(polite) 읽어 준다. 화면 표시는 그대로. */}
+      <span className="sr-only" role="status" aria-live="polite">
+        {grade.name}까지 추가로 드는 실제 현금 {int(result.cost)}원, 회수율 {pct(result.recovery)}
+      </span>
+
       <div className="result-top">
         <div className="result-headline">
           <div className="result-label">{grade.name}까지 추가로 드는 실제 현금</div>
@@ -30,6 +35,7 @@ export function ResultBar({ grade, result, maintenance, onDetail, warnings }: Pr
             {warnings.length > 0 && (
               <span
                 className="fig-warn"
+                role="button"
                 tabIndex={0}
                 aria-label={`확인이 필요한 항목 ${warnings.length}건: ${warnings.join(' · ')}`}
               >

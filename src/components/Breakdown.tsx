@@ -41,6 +41,9 @@ export function Breakdown({ grade, result, alreadyCash, feeRate }: Props) {
       <Row k="캐시 사용 / 목표" v={`${int(result.sale.cashUsed)} / ${int(result.needCash)}`} />
       <Row k="크레딧 사용 / 가용" v={`${int(result.sale.creditUsed)} / ${int(result.creditAvailable)}`} />
       <Row k="입력한 총 판매메소" v={`${eok(result.sale.mesoRaw)}억`} />
+      {result.sale.mesoRaw - result.meso > 0.005 && (
+        <Row k="가용 크레딧 상한 적용 후" v={`${eok(result.meso)}억`} />
+      )}
       <Row k={`경매장 수수료 ${feeRate}% 차감 후`} v={`${eok(result.mesoAfterFee)}억`} />
       <Row k="환전 회수 현금" v={won(result.cashBack)} />
 
