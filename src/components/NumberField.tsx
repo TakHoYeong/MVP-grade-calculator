@@ -9,10 +9,13 @@ interface Props {
   hideLabelOnWide?: boolean;
   /** 천 단위 콤마 표시 (금액 입력용) */
   comma?: boolean;
+  /** 정수만 입력 (개수 등 — 소수점 차단) */
+  integer?: boolean;
 }
 
-/** 입력 문자열에서 숫자와 소수점 하나만 남긴다 (콤마 등은 버린다) */
-function sanitize(raw: string): string {
+/** 입력 문자열에서 숫자(+정수가 아니면 소수점 하나)만 남긴다 (콤마 등은 버린다) */
+function sanitize(raw: string, integer: boolean): string {
+  if (integer) return raw.replace(/[^\d]/g, '');
   const cleaned = raw.replace(/[^\d.]/g, '');
   const firstDot = cleaned.indexOf('.');
   if (firstDot === -1) return cleaned;
@@ -50,6 +53,7 @@ export function NumberField({
   placeholder,
   hideLabelOnWide = true,
   comma = false,
+  integer = false,
 }: Props) {
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -105,7 +109,7 @@ export function NumberField({
             const upto = el.value.slice(0, el.selectionStart ?? el.value.length);
             caretRef.current = upto.replace(/[^\d.]/g, '').length;
           }
-          const next = sanitize(el.value);
+          const next = sanitize(el.value, integer);
           setText(next);
           onChange(toNumber(next));
         }}

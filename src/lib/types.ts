@@ -71,7 +71,11 @@ export interface SaleTotals {
   cashUsed: number;
   /** 크레딧으로 산 아이템 총 크레딧 */
   creditUsed: number;
-  /** 입력한 판매 메소 총합(억) */
+  /** 캐시 아이템에서 나오는 판매 메소(억) */
+  cashMeso: number;
+  /** 크레딧 아이템에서 나오는 판매 메소(억) */
+  creditMeso: number;
+  /** 입력한 판매 메소 총합(억) = cashMeso + creditMeso */
   mesoRaw: number;
 }
 

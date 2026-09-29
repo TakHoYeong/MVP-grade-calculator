@@ -67,14 +67,20 @@ export function fillTiers(
 export function sumSales(sales: SaleRow[]): SaleTotals {
   let cashUsed = 0;
   let creditUsed = 0;
-  let mesoRaw = 0;
+  let cashMeso = 0;
+  let creditMeso = 0;
   for (const s of sales) {
     const spent = n(s.unitCost) * n(s.qty);
-    mesoRaw += n(s.saleMeso) * n(s.qty);
-    if (s.kind === 'credit') creditUsed += spent;
-    else cashUsed += spent;
+    const meso = n(s.saleMeso) * n(s.qty);
+    if (s.kind === 'credit') {
+      creditUsed += spent;
+      creditMeso += meso;
+    } else {
+      cashUsed += spent;
+      cashMeso += meso;
+    }
   }
-  return { cashUsed, creditUsed, mesoRaw };
+  return { cashUsed, creditUsed, cashMeso, creditMeso, mesoRaw: cashMeso + creditMeso };
 }
 
 /**
@@ -97,12 +103,24 @@ export function calculate(
   const { fills, paid, earned, overflow } = fillTiers(needCash, state.tiers);
   const spend = paid - earned;
 
-  // 기본: 입력한 판매 계획 그대로의 판매 메소.
-  // scaleRecovery(등급 비교표): 캐시 1원당 판매 메소 효율을 이 등급 needCash 로 환산한 '예상'.
   const sale = sumSales(state.sales);
+
+  // 크레딧 아이템은 '가용 크레딧'(needCash 의 5%)만큼만 살 수 있다.
+  // 그 이상 입력됐으면 실제로는 다 살 수 없으므로, 초과분 회수는 비례해서 깎는다.
+  const creditAvailable = needCash * (CREDIT_EARN_RATE / 100);
+  const creditMeso =
+    sale.creditUsed > creditAvailable && sale.creditUsed > 0
+      ? sale.creditMeso * (creditAvailable / sale.creditUsed)
+      : sale.creditMeso;
+  const effectiveMeso = sale.cashMeso + creditMeso;
+
+  // 기본: 입력한 판매 계획 그대로(크레딧 상한 반영).
+  // scaleRecovery(등급 비교표): 캐시 1원당 효율을 이 등급 needCash 로 환산한 '예상'.
   const meso = opts?.scaleRecovery
-    ? (sale.cashUsed > 0 ? (sale.mesoRaw / sale.cashUsed) * needCash : 0)
-    : sale.mesoRaw;
+    ? sale.cashUsed > 0
+      ? (effectiveMeso / sale.cashUsed) * needCash
+      : 0
+    : effectiveMeso;
 
   const feeMultiplier = 1 - feePct / 100;
   const mesoAfterFee = meso * feeMultiplier;
@@ -120,7 +138,7 @@ export function calculate(
     spend,
     costPerCash: needCash > 0 ? spend / needCash : 0,
     sale,
-    creditAvailable: needCash * (CREDIT_EARN_RATE / 100),
+    creditAvailable,
     meso,
     mesoAfterFee,
     cashBack,

@@ -39,18 +39,22 @@ export default function App() {
     () => calculate(state, grade.req, fee, alreadyCash),
     [state, grade.req, fee, alreadyCash],
   );
-  const maintenance = useMemo(() => calculate(state, grade.req, fee, 0), [state, grade.req, fee]);
+  // 유지 비용은 '이 효율로 계속 되판다'는 예상이므로 등급 비교표와 같은 방식(scaleRecovery)으로 맞춘다.
+  const maintenance = useMemo(
+    () => calculate(state, grade.req, fee, 0, { scaleRecovery: true }),
+    [state, grade.req, fee],
+  );
 
   // 결과바 경고 아이콘에 모을, 덜 입력했거나 확인이 필요한 항목들
   const warnings = useMemo(() => {
     const w: string[] = [];
+    const hasPlan = result.sale.cashUsed > 0 || result.sale.creditUsed > 0;
     if (result.needCash > 0 && state.tiers.length === 0) {
       w.push('넥슨캐시 구매 방식을 입력하지 않았습니다.');
     }
-    if (n(state.exRate) <= 0) {
+    if (hasPlan && n(state.exRate) <= 0) {
       w.push('환전 시세가 비어 있어요. 입력하면 환전 회수가 계산됩니다.');
     }
-    const hasPlan = result.sale.cashUsed > 0 || result.sale.creditUsed > 0;
     const creditLeft = result.creditAvailable - result.sale.creditUsed;
     if (hasPlan && result.creditAvailable > 0 && creditLeft > 0) {
       w.push(
@@ -64,6 +68,13 @@ export default function App() {
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [confirmAutoFill, setConfirmAutoFill] = useState(false);
+
+  // 자동 구성: 기존 판매 목록이 있으면 덮어쓰기 전에 확인받는다.
+  const requestAutoFill = () => {
+    if (state.sales.length > 0) setConfirmAutoFill(true);
+    else autoFillSales(result.needCash);
+  };
 
   return (
     <div className="wrap">
@@ -127,7 +138,7 @@ export default function App() {
                 checked={fee === 3}
                 onChange={(e) => setFeeLow(e.target.checked)}
               />
-              MVP 실버 이상 · PC방 수령
+              MVP 실버 이상 또는 PC방 수령
             </label>
           </div>
           <b className="fee-val">{fee}%</b>
@@ -189,7 +200,7 @@ export default function App() {
           onPatch={patchSale}
           onRemove={removeSale}
           onAdd={addSale}
-          onAutoFill={autoFillSales}
+          onAutoFill={requestAutoFill}
         />
       </Card>
 
@@ -215,6 +226,31 @@ export default function App() {
           청약철회가 가능한 아이템은 캐시보관함에서 인벤토리로 옮길 때 반영됩니다. 이미 결제한
           금액은 지나간 비용이므로 앞으로의 계산에서 제외됩니다. 대량 판매 시 시세가 밀릴 수 있으니
           판매가는 평균 체결가로 넣으세요.
+        </div>
+      </Modal>
+
+      <Modal
+        open={confirmAutoFill}
+        onClose={() => setConfirmAutoFill(false)}
+        title="판매 목록 자동 구성"
+      >
+        <p className="modal-desc">
+          지금 입력한 판매 목록을 지우고 목표에 맞춰 새로 채웁니다. 계속할까요?
+        </p>
+        <div className="modal-actions">
+          <button type="button" className="btn-ghost" onClick={() => setConfirmAutoFill(false)}>
+            취소
+          </button>
+          <button
+            type="button"
+            className="btn-danger"
+            onClick={() => {
+              autoFillSales(result.needCash);
+              setConfirmAutoFill(false);
+            }}
+          >
+            새로 채우기
+          </button>
         </div>
       </Modal>
 

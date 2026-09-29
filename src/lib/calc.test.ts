@@ -88,11 +88,19 @@ describe('sumSales', () => {
     ]);
     expect(r.cashUsed).toBe(100_000 * 20 + 50_000 * 4);
     expect(r.creditUsed).toBe(10_000 * 5);
+    expect(r.cashMeso).toBeCloseTo(50 * 20 + 22 * 4, 6);
+    expect(r.creditMeso).toBeCloseTo(8 * 5, 6);
     expect(r.mesoRaw).toBeCloseTo(50 * 20 + 8 * 5 + 22 * 4, 6);
   });
 
   it('빈 목록은 0', () => {
-    expect(sumSales([])).toEqual({ cashUsed: 0, creditUsed: 0, mesoRaw: 0 });
+    expect(sumSales([])).toEqual({
+      cashUsed: 0,
+      creditUsed: 0,
+      cashMeso: 0,
+      creditMeso: 0,
+      mesoRaw: 0,
+    });
   });
 });
 
@@ -132,6 +140,26 @@ describe('calculate — 판매 시뮬 기준', () => {
     const one = calculate({ ...base(), sales: [sale('cash', 100_000, 50, 1)] }, 1_000_000, 3, 0);
     const ten = calculate({ ...base(), sales: [sale('cash', 100_000, 50, 10)] }, 1_000_000, 3, 0);
     expect(ten.cashBack).toBeCloseTo(one.cashBack * 10, 2);
+  });
+
+  it('크레딧을 가용치보다 많이 팔면 초과분 회수는 상한이 걸린다', () => {
+    // needCash 1,000,000 → 가용 크레딧 50,000. 크레딧을 100,000어치(=2배) 팔면 회수는 절반만 인정.
+    const capped = calculate(
+      { ...base(), sales: [sale('credit', 10_000, 8, 10)] }, // creditUsed 100,000, creditMeso 80
+      1_000_000,
+      3,
+      0,
+    );
+    // 80억이 아니라 80 × (50,000/100,000) = 40억만 반영
+    expect(capped.meso).toBeCloseTo(40, 6);
+    // 가용 이내(50,000어치)면 상한 없음
+    const within = calculate(
+      { ...base(), sales: [sale('credit', 10_000, 8, 5)] }, // creditUsed 50,000, creditMeso 40
+      1_000_000,
+      3,
+      0,
+    );
+    expect(within.meso).toBeCloseTo(40, 6);
   });
 
   it('scaleRecovery 옵션은 효율을 목표 캐시에 맞춰 환산한다 (등급 비교표용)', () => {

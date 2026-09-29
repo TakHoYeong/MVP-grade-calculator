@@ -11,8 +11,8 @@ interface Props {
   onPatch: (id: string, patch: Partial<SaleRow>) => void;
   onRemove: (id: string) => void;
   onAdd: (init?: Partial<Pick<SaleRow, 'kind' | 'unitCost' | 'saleMeso' | 'qty'>>) => void;
-  /** 목표 캐시에 맞춰 대표 상품을 자동으로 섞어 채운다 */
-  onAutoFill: (needCash: number) => void;
+  /** 목표 캐시에 맞춰 대표 상품을 자동으로 섞어 채운다 (덮어쓰기 확인은 상위에서 처리) */
+  onAutoFill: () => void;
 }
 
 // 넓은 화면 한 줄: 종류 | 가격 | 판매가(억) | 개수 | 판매메소 | 효율 | 삭제
@@ -62,7 +62,7 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd, onAutoFill }:
         <button
           type="button"
           className="auto-fill-btn"
-          onClick={() => onAutoFill(result.needCash)}
+          onClick={onAutoFill}
           disabled={result.needCash <= 0}
           title={result.needCash <= 0 ? '이미 목표를 채웠습니다' : undefined}
         >
@@ -125,6 +125,7 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd, onAutoFill }:
           value={qty}
           placeholder="10"
           hideLabelOnWide={false}
+          integer
           onChange={setQty}
         />
         <button type="button" className="sim-add-btn" onClick={handleAdd}>
@@ -186,6 +187,7 @@ export function SaleSim({ sales, result, onPatch, onRemove, onAdd, onAutoFill }:
                 label="개수"
                 value={s.qty}
                 placeholder="10"
+                integer
                 onChange={(v) => onPatch(s.id, { qty: v })}
               />
               <div className="sim-cell">
